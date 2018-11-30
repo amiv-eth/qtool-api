@@ -1,7 +1,7 @@
 from flask_restplus import Namespace, Resource, fields
 from flask import request
 
-from .utility import authenticate
+from .utility import authenticate, checkForExistence
 
 from sql import db
 from sql.transactions import Transaction,  DetailReceipt
@@ -72,7 +72,7 @@ transaction_model = api.model('Transaction', {
 class Transactions(Resource):
     @api.doc(params=transactionParams, security='amivapitoken')
     @api.response(401, 'Unauthorized')
-    @authenticate
+    @authenticate()
     def get(self,user):
     	query = db.session.query(Transaction)
     	#apply user related filters
@@ -83,7 +83,7 @@ class Transactions(Resource):
 
     @api.doc(security='amivapitoken')
     @api.expect(transaction_model)
-    @authenticate
+    @authenticate()
     def post(self,user):
         privileges = user.user_privileges
         if not (privileges>>9)&1:
@@ -111,7 +111,7 @@ class Transactions(Resource):
 @api.route('/<string:id>')
 class ReceiptById(Resource):
     @api.doc(security = 'amivapitoken')
-    @authenticate
+    @authenticate()
     def get(self, id, user):
         query = db.session.query(Transaction).filter(Transaction.id == id)
         if not query.first():
@@ -124,18 +124,25 @@ class ReceiptById(Resource):
         return res 
 
     @api.expect(transaction_model)
-    def patch(self, id):
-        return {'message': 'Request not processed!'}, 202
+    @api.doc(security = 'amivapitoken')
+    @authenticate(requireUserLevelBit = 9)
+    def patch(self, id, user):
+        query = db.session.query(Transaction).filter(Transaction.id == id)
+        if not query.first():
+            return {'message': 'Id does not exist!'}, 404
+        element = query.first()
+        newData = transactionSchema.load(api.payload)[0]
+        for key in newData:
+            setattr(element, key, newData[key])
+        db.session.commit()
+        return {'message': 'Operation successful.'}, 202
 
     @api.doc(security = 'amivapitoken')
-    @authenticate
+    @authenticate(requireUserLevelBit = 9)
     def delete(self,id,user):
         query = db.session.query(Transaction).filter(Transaction.id == id)
         if not query.first():
             return {'message': 'Id does not exist!'}, 404
-        #Check for admin level
-        if not (user.user_privileges>>9)&1:
-            return {"message": "User not authorized."}, 401
         query.first().is_valid = False
         db.session.commit()
         return {"message": "Operation successful."}, 202
@@ -143,7 +150,7 @@ class ReceiptById(Resource):
 @api.route('/receipt')
 class Receipts(Resource):
 	@api.doc(params=receiptParams, security = 'amivapitoken')
-	@authenticate
+	@authenticate()
 	def get(self,user):
 		query = db.session.query(Transaction,DetailReceipt).filter(DetailReceipt.transaction_id == Transaction.id)
 		query = applyUserFilters(query,user)
