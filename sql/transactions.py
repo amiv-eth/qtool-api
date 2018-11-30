@@ -16,6 +16,7 @@ class Transaction(db.Model):
 	is_valid = db.Column(db.Boolean, nullable= False) 
 	amount = db.Column(db.Numeric(precision=10,scale=2), nullable = False, default=0.00)
 	currency_id = db.Column(INTEGER(4), ForeignKey('transaction_currency.currency_id'), nullable= False)
+	amount_in_chf = db.Column(db.Numeric(precision=10,scale=2), nullable = True)
 	user_id = db.Column(db.Integer, ForeignKey('user.user_id'), nullable= False)
 	comment = db.Column(db.String(255), nullable = True)
 
@@ -35,6 +36,7 @@ class DetailMerchandise(db.Model):
 #ToDo: Use multiple article entries to store a Invoice properly
 class Invoice(db.Model):
 	invoice_number = db.Column(db.String(7), nullable=False, primary_key=True)
+	issuer_id = db.Column(db.Integer, ForeignKey('user.user_id'), nullable= False)
 	issue_date = db.Column(db.DATE, default = datetime.datetime.now, nullable= False)
 	ext_customer_db = db.Column(db.Boolean, nullable=False)
 	customer_id = db.Column(db.Integer, ForeignKey('customer.customer_id'), nullable=False)

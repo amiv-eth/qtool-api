@@ -3,6 +3,7 @@ from marshmallow import Schema, fields
 class InvoiceSchema(Schema):
     invoice_number = fields.Str()
     issue_date = fields.Date()
+    issuer_id = fields.Int()
     ext_customer_db = fields.Bool()
     customer_id = fields.Int()
     duedate = fields.Date()

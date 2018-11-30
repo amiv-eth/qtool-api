@@ -12,6 +12,7 @@ class TransactionSchema(Schema):
 	is_valid = fields.Bool()
 	amount = fields.Float()
 	currency_id = fields.Int()
+	amount_in_chf = fields.Float()
 	user_id = fields.Int()
 	comment = fields.Str()
 

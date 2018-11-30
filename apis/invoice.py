@@ -31,7 +31,8 @@ class InvoicesDetails(Resource):
         for result in query:
             temp = invoiceSchema.dump(result)[0]
             temp['number_of_items'] = len(result.items)
-            for idx, item in enumerate(result.items):
-                temp['item_'+str(idx+1)] = invoiceItemSchema.dump(item)[0]
+            temp['items'] = [invoiceItemSchema.dump(item)[0] for item in result.items]
+            #for idx, item in enumerate(result.items):
+            #    temp['item_'+str(idx+1)] = invoiceItemSchema.dump(item)[0]
             res.append(temp)
         return res
