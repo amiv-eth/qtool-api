@@ -10,10 +10,15 @@ from sql.transaction_util import TransactionAccount
 from sqlalchemy import or_
 from schemas.transaction import TransactionSchema, TransactionQuery, ReceiptSchema
 
+from queries.request import DatabaseRequest
+
 
 api = Namespace('Transaction', description='Transaction related operations.')
 
 transactionSchema = TransactionSchema()
+transactionSchemaUser = TransactionSchema(exclude = ('account_id',))
+
+
 receiptSchema = ReceiptSchema()
 
 transaction_filters = {
@@ -68,18 +73,22 @@ transaction_model = api.model('Transaction', {
     'comment': fields.String
 })
 
+transactionRequest = DatabaseRequest()
+transactionRequest.databaseName = Transaction
+transactionRequest.primaryKey = Transaction.id
+
+
+
 @api.route('/')
 class Transactions(Resource):
     @api.doc(params=transactionParams, security='amivapitoken')
     @api.response(401, 'Unauthorized')
     @authenticate()
     def get(self,user):
-    	query = db.session.query(Transaction)
-    	#apply user related filters
-    	query = applyUserFilters(query,user)
-    	query = applyQueryParams(query)
-    	res = [transactionSchema.dump(result)[0] for result in query]
-        return res
+        userLevelFilters = applyUserLevelFilters(user)
+        userLevelSchema = selectUserLevelSchema(user)
+        res = transactionRequest.getSerializedElements(schema=userLevelSchema,userLevelFilters=userLevelFilters)
+        return res, 200
 
     @api.doc(security='amivapitoken')
     @api.expect(transaction_model)
@@ -113,15 +122,9 @@ class ReceiptById(Resource):
     @api.doc(security = 'amivapitoken')
     @authenticate()
     def get(self, id, user):
-        query = db.session.query(Transaction).filter(Transaction.id == id)
-        if not query.first():
-        	return {'message': 'Id does not exist!'}, 404
-        #apply user related filters
-        query = applyUserFilters(query,user)
-        if not query.first():
-        	return {"message": "User not authorized."}, 401
-        res = transactionSchema.dump(query.first())[0]
-        return res 
+        userLevelFilters = applyUserLevelFilters(user)
+        userLevelSchema = selectUserLevelSchema(user)
+        return transactionRequest.getSerializedElementById(id,userLevelSchema,userLevelFilters)
 
     @api.expect(transaction_model)
     @api.doc(security = 'amivapitoken')
@@ -193,6 +196,20 @@ def applyUserFilters(query,user):
 	if (privileges>>6)&1:
 		return query.filter(or_(Transaction.budgetitem_id == "303K", Transaction.user_id == user.user_id))
 	return query.filter(Transaction.user_id == user.user_id)
+
+def applyUserLevelFilters(user):
+        privileges = user.user_privileges
+        if (privileges>>8)&1 or (privileges>>9)&1:
+            return True
+        if (privileges>>6)&1:
+            return (or_(Transaction.budgetitem_id == "303K", Transaction.user_id == user.user_id))
+        return (Transaction.user_id == user.user_id)
+
+def selectUserLevelSchema(user):
+    privileges = user.user_privileges
+    if (privileges>>8)&1 or (privileges>>9)&1:
+        return transactionSchema
+    return transactionSchemaUser
 
 
 

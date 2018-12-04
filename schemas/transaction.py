@@ -16,6 +16,8 @@ class TransactionSchema(Schema):
 	user_id = fields.Int()
 	comment = fields.Str()
 
+
+
 class TransactionQuery(TransactionSchema):
 	id = fields.Int(dump_only=False)
 	pass
