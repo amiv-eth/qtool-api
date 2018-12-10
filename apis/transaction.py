@@ -10,7 +10,9 @@ from sql.transaction_util import TransactionAccount
 from sqlalchemy import or_
 from schemas.transaction import TransactionSchema, TransactionQuery, ReceiptSchema
 
-from queries.request import DatabaseRequest
+from requests.request import DatabaseRequest
+from requests.transaction_access import TransactionAccess, ReceiptAccess
+from requests.budget_access import BudgetItemAccess
 
 
 api = Namespace('Transaction', description='Transaction related operations.')
@@ -85,9 +87,8 @@ class Transactions(Resource):
     @api.response(401, 'Unauthorized')
     @authenticate()
     def get(self,user):
-        userLevelFilters = applyUserLevelFilters(user)
-        userLevelSchema = selectUserLevelSchema(user)
-        res = transactionRequest.getSerializedElements(schema=userLevelSchema,userLevelFilters=userLevelFilters)
+        transactionAccessData = TransactionAccess(user)
+        res = transactionRequest.getSerializedElements(transactionAccessData)
         return res, 200
 
     @api.doc(security='amivapitoken')
@@ -122,9 +123,8 @@ class ReceiptById(Resource):
     @api.doc(security = 'amivapitoken')
     @authenticate()
     def get(self, id, user):
-        userLevelFilters = applyUserLevelFilters(user)
-        userLevelSchema = selectUserLevelSchema(user)
-        return transactionRequest.getSerializedElementById(id,userLevelSchema,userLevelFilters)
+        transactionAccessData = TransactionAccess(user)
+        return transactionRequest.getSerializedElementById(id,transactionAccessData)
 
     @api.expect(transaction_model)
     @api.doc(security = 'amivapitoken')
@@ -152,22 +152,18 @@ class ReceiptById(Resource):
 
 @api.route('/receipt')
 class Receipts(Resource):
-	@api.doc(params=receiptParams, security = 'amivapitoken')
-	@authenticate()
-	def get(self,user):
-		query = db.session.query(Transaction,DetailReceipt).filter(DetailReceipt.transaction_id == Transaction.id)
-		query = applyUserFilters(query,user)
-		query = applyQueryParams(query,"receipt")
-		response = []
-		for result in query:
-			transDict = transactionSchema.dump(result[0])[0]
-			transDict.update(receiptSchema.dump(result[1])[0])
-			response.append(transDict)
-		return response
+    @api.doc(params=receiptParams, security = 'amivapitoken')
+    @authenticate()
+    def get(self,user):
+        transactionAccessData = TransactionAccess(user)
+        receiptAccessData = ReceiptAccess(user)
+        budgetItemAccess = BudgetItemAccess(user)
+        res = transactionRequest.embedElement(transactionAccessData,{'receipt_data':receiptAccessData, 'budget_item':budgetItemAccess})
+        return res
 
 
 
-		
+"""		
 def applyQueryParams(query,detail="none"):
 	#Get query parameters
 	requ = request.args.to_dict(flat=True)
@@ -210,6 +206,7 @@ def selectUserLevelSchema(user):
     if (privileges>>8)&1 or (privileges>>9)&1:
         return transactionSchema
     return transactionSchemaUser
+"""
 
 
 
