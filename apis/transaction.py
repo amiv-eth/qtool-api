@@ -1,7 +1,7 @@
 from flask_restplus import Namespace, Resource, fields
 from flask import request
 
-from .utility import authenticate, checkForExistence
+from .utility import authenticate
 
 from sql import db
 from sql.transactions import Transaction,  DetailReceipt
@@ -66,10 +66,10 @@ transaction_model = api.model('Transaction', {
     'type_id': fields.Integer,
     'description': fields.String,
     'category_id': fields.Integer,
-    'budgetitem_id': fields.String,
-    'account_id': fields.String,
+    'budgetitem_id': fields.Integer,
+    'account_id': fields.Integer,
     'is_valid': fields.Boolean,
-    'amount': fields.Integer,
+    'amount': fields.Float,
     'currency_id': fields.Integer,
     'user_id': fields.Integer,
     'comment': fields.String
@@ -130,23 +130,19 @@ class ReceiptById(Resource):
     @api.doc(security = 'amivapitoken')
     @authenticate(requireUserLevelBit = 9)
     def patch(self, id, user):
-        query = db.session.query(Transaction).filter(Transaction.id == id)
-        if not query.first():
-            return {'message': 'Id does not exist!'}, 404
-        element = query.first()
+        transactionAccessData = TransactionAccess(user)
         newData = transactionSchema.load(api.payload)[0]
-        for key in newData:
-            setattr(element, key, newData[key])
-        db.session.commit()
-        return {'message': 'Operation successful.'}, 202
+        success = transactionRequest.patchElement(id, transactionAccessData, newData)
+        if success:
+            return {'message': 'Operation successful.'}, 202
+        else:
+            return {'message': 'Operation failed.'}, 500
 
     @api.doc(security = 'amivapitoken')
     @authenticate(requireUserLevelBit = 9)
     def delete(self,id,user):
-        query = db.session.query(Transaction).filter(Transaction.id == id)
-        if not query.first():
-            return {'message': 'Id does not exist!'}, 404
-        query.first().is_valid = False
+        transactionAccessData = TransactionAccess(user)
+        transactionRequest.getElementById(id, transactionAccessData).is_valid = False
         db.session.commit()
         return {"message": "Operation successful."}, 202
 
@@ -160,55 +156,3 @@ class Receipts(Resource):
         budgetItemAccess = BudgetItemAccess(user)
         res = transactionRequest.embedElement(transactionAccessData,{'receipt_data':receiptAccessData, 'budget_item':budgetItemAccess})
         return res
-
-
-
-"""		
-def applyQueryParams(query,detail="none"):
-	#Get query parameters
-	requ = request.args.to_dict(flat=True)
-	#Validate query parameter
-	qSchema = TransactionQuery()
-	parameters = qSchema.load(requ)[0]
-	if detail == "receipt":
-		parameters.update(receiptSchema.load(requ)[0])
-		filters=receipt_filters
-	else:
-		filters=transaction_filters
-	#err = qSchema.load(requ)[1]
-	#Generate DB query according to the get request parameters
-	for key in parameters:
-		if arg == "description" or arg == "comment":
-			query = query.filter(filters[key].contains(parameters[key]))
-		else:
-			query = query.filter(filters[key] == parameters[key])
-
-	return query
-
-def applyUserFilters(query,user):
-	privileges = user.user_privileges
-	if (privileges>>8)&1 or (privileges>>9)&1:
-		return query
-	if (privileges>>6)&1:
-		return query.filter(or_(Transaction.budgetitem_id == "303K", Transaction.user_id == user.user_id))
-	return query.filter(Transaction.user_id == user.user_id)
-
-def applyUserLevelFilters(user):
-        privileges = user.user_privileges
-        if (privileges>>8)&1 or (privileges>>9)&1:
-            return True
-        if (privileges>>6)&1:
-            return (or_(Transaction.budgetitem_id == "303K", Transaction.user_id == user.user_id))
-        return (Transaction.user_id == user.user_id)
-
-def selectUserLevelSchema(user):
-    privileges = user.user_privileges
-    if (privileges>>8)&1 or (privileges>>9)&1:
-        return transactionSchema
-    return transactionSchemaUser
-"""
-
-
-
-
-

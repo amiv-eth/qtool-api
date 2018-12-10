@@ -52,10 +52,17 @@ class DatabaseRequest():
     """
 
     def getSerializedElementById(self, id, accessControl):
-        element = self.getObjectById(id,accessControl)
+        element = self.getElementById(id,accessControl)
         return accessControl.schema.dump(element)[0]
 
-    def getObjectById(self, id, accessControl):
+    def patchElement(self, id , accessControl, newData):
+        element = self.getElementById(id, accessControl)
+        for key in newData:
+            setattr(element, key, newData[key])
+        db.session.commit()
+        return True
+
+    def getElementById(self, id, accessControl):
         query = db.session.query(accessControl.databaseName).filter(accessControl.primaryKey == id)
         if not query.first():
             abort(404, 'Id does not exist.')
