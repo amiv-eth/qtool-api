@@ -1,7 +1,7 @@
 from flask_restplus import Namespace, Resource, fields
 
 from sql import db
-from sql.transactions import Invoice, InvoiceItem
+from sql.invoice import Invoice, InvoiceItem
 
 from schemas.invoice import InvoiceSchema, InvoiceItemSchema
 

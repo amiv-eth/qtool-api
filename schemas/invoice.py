@@ -1,6 +1,7 @@
 from marshmallow import Schema, fields
 
 class InvoiceSchema(Schema):
+    invoice_id = fields.Int(dump_only=True)
     invoice_number = fields.Str()
     issue_date = fields.Date()
     issuer_id = fields.Int()
@@ -22,4 +23,4 @@ class InvoiceItemSchema(Schema):
     taxrate = fields.Float()
     unitprice = fields.Float()
 
-    invoice_number = fields.String()
+    invoice_id = fields.String(dump_only = True)

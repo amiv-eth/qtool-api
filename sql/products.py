@@ -2,7 +2,8 @@ from sql import db
 
 
 class InvoiceArticle(db.Model):
-	article_id = db.Column(db.String(255), nullable = False, primary_key=True)
+	article_id = db.Column(db.Integer, nullable = False, primary_key=True)
+	article_code = db.Column(db.String(255), nullable = False)
 	article = db.Column(db.String(255), nullable=False)
 	description = db.Column(db.String(255), nullable=False)
 	unit = db.Column(db.String(255), nullable=False)

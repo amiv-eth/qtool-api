@@ -1,5 +1,12 @@
 from sql import db
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.mysql import INTEGER
+
+association_table = db.Table('association_user_budgetitem', db.Model.metadata,
+    db.Column('user_id', db.Integer, ForeignKey('user.user_id')),
+    db.Column('budgetitem_id', db.Integer, ForeignKey('budget_item.budgetitem_id'))
+)
 
 class Customer(db.Model):
 	customer_id = db.Column(db.Integer, nullable = False, primary_key=True)
@@ -17,16 +24,19 @@ class Customer(db.Model):
 	quotation = db.Column(db.String(255), nullable=False)
 
 class User(db.Model):
-	user_id = db.Column(db.Integer, nullable = False, primary_key=True)
-	nethz = db.Column(db.String(255), nullable = False)
-	password = db.Column(db.String(255), nullable = False)
-	salt = db.Column(db.String(255), nullable = False)
-	name = db.Column(db.String(255), nullable = False)
-	iban = db.Column(db.String(255), nullable = False)
-	bic = db.Column(db.String(255), nullable = False)
-	role = db.Column(db.String(255), nullable=False)
-	amiv_email = db.Column(db.String(255), nullable=False)
-	user_privileges = db.Column(INTEGER(6), nullable=False)
+    user_id = db.Column(db.Integer, nullable = False, primary_key=True)
+    nethz = db.Column(db.String(255), nullable = False)
+    password = db.Column(db.String(255), nullable = False)
+    salt = db.Column(db.String(255), nullable = False)
+    name = db.Column(db.String(255), nullable = False)
+    iban = db.Column(db.String(255), nullable = False)
+    bic = db.Column(db.String(255), nullable = False)
+    role = db.Column(db.String(255), nullable=False)
+    amiv_email = db.Column(db.String(255), nullable=False)
+    user_privileges = db.Column(INTEGER(6), nullable=False)
+    own_budgetitem_id = relationship("BudgetItem",secondary=association_table)
+
+
 
 """
 User privileges
