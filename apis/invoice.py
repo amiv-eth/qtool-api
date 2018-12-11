@@ -20,7 +20,7 @@ invoiceItemSchema = InvoiceItemSchema()
 @api.route('/')
 class Invoices(Resource):
     @api.doc(security='amivapitoken')
-    @authenticate()
+    @authenticate(requiredUserLevelBit = [7,8,9])
     def get(self,user):
         invoiceAccessData = InvoiceAccess(user)
         res = dbRequest.getSerializedElements(invoiceAccessData)
@@ -31,7 +31,7 @@ class Invoices(Resource):
 @api.route('/detail')
 class InvoicesDetails(Resource):
     @api.doc(security='amivapitoken')
-    @authenticate()
+    @authenticate(requiredUserLevelBit = [7,8,9])
     def get(self,user):
         # Edge case, need to embed multiple items! 
         """

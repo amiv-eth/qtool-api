@@ -5,7 +5,7 @@ from sql import db
 from sql.people import User
 
 
-def authenticate(requireUserLevelBit = None):
+def authenticate(requiredUserLevelBit = None):
 	def decorator(f):
 		@wraps(f)
 		def decorated(*args, **kwargs):
@@ -28,20 +28,15 @@ def authenticate(requireUserLevelBit = None):
 			else:
 				return {"message": "User not logged in."}, 401
 			
-			if requireUserLevelBit:
-				if not (user.user_privileges>>requireUserLevelBit)&1:
+			if requiredUserLevelBit:
+				if not checkUserLevelBits(user,requiredUserLevelBit):
 					return {"message": "User not authorized."}, 401
 			return f(user = user,*args,**kwargs)
 		return decorated
 	return decorator
 
-def checkForExistence(table, column, key = 'id'):
-	def decorator(f):
-	    @wraps(f)
-	    def decorated(*args, **kwargs):
-	        element = db.session.query(table).filter(column == kwargs[key]).first()
-	        if not element:
-	            return {'message': 'Id does not exist!'}, 404
-	        return f(element = element,*args,**kwargs)
-	    return decorated
-	return decorator
+def checkUserLevelBits(user,requiredUserLevelBit):
+	for bit in requiredUserLevelBit:
+		if (user.user_privileges>>bit)&1:
+			return True
+	return False

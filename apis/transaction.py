@@ -128,7 +128,7 @@ class ReceiptById(Resource):
 
     @api.expect(transaction_model)
     @api.doc(security = 'amivapitoken')
-    @authenticate(requireUserLevelBit = 9)
+    @authenticate(requiredUserLevelBit = [9])
     def patch(self, id, user):
         transactionAccessData = TransactionAccess(user)
         newData = transactionSchema.load(api.payload)[0]
@@ -139,7 +139,7 @@ class ReceiptById(Resource):
             return {'message': 'Operation failed.'}, 500
 
     @api.doc(security = 'amivapitoken')
-    @authenticate(requireUserLevelBit = 9)
+    @authenticate(requiredUserLevelBit = [9])
     def delete(self,id,user):
         transactionAccessData = TransactionAccess(user)
         transactionRequest.getElementById(id, transactionAccessData).is_valid = False
