@@ -1,7 +1,7 @@
 from flask_restplus import Namespace, Resource, fields
 from flask import request
 
-from .utility import authenticate
+from .utility import authenticate, schemaToDict
 
 from sql import db
 from sql.transactions import Transaction,  DetailReceipt
@@ -59,7 +59,7 @@ receiptParams = {}
 for arg in receipt_filters:
 	receiptParams[arg] = ""
 
-
+"""
 transaction_model = api.model('Transaction', {
     'financial_year': fields.Integer,
     'date': fields.DateTime,
@@ -74,6 +74,9 @@ transaction_model = api.model('Transaction', {
     'user_id': fields.Integer,
     'comment': fields.String
 })
+"""
+
+transaction_model = api.model('Transaction', schemaToDict(TransactionSchema))
 
 transactionRequest = DatabaseRequest()
 transactionRequest.databaseName = Transaction
