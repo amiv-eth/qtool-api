@@ -16,7 +16,10 @@ class TransactionAccess(AccessControl):
         if (privileges>>8)&1 or (privileges>>9)&1:
             return True
         if (privileges>>6)&1:
-            return (or_(Transaction.budgetitem_id == "303K", Transaction.user_id == user.user_id))
+            filterExpression = (Transaction.user_id == user.user_id)
+            for budget_item in user.own_budgetitem_id:
+                filterExpression = or_(Transaction.budgetitem_id == budget_item.budgetitem_id, filterExpression)
+            return filterExpression
         return (Transaction.user_id == user.user_id)
 
     def selectUserLevelSchema(self, user):

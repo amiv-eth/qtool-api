@@ -1,12 +1,18 @@
-from flask_restplus import Namespace, Resource, fields
+from flask_restplus import Namespace, Resource
+
+from sql.budget import BudgetItem
 
 from sql import db
-from sql.budget import BudgetItem, BudgetConfirmed
 from sql.transactions import Transaction
+
+from .utility import authenticate
 
 from sqlalchemy import or_
 
 from schemas.budget import BudgetConfirmedSchema, BudgetItemSchema
+
+from requests.budget_access import BudgetConfirmedAccess, BudgetItemAccess
+from requests.request import DatabaseRequest
 
 
 api = Namespace('Budget', description='Budget related operations.')
@@ -14,27 +20,25 @@ api = Namespace('Budget', description='Budget related operations.')
 budgetItemSchema = BudgetItemSchema()
 budgetConfirmedSchema = BudgetConfirmedSchema()
 
+dbRequest = DatabaseRequest()
+
 @api.route('/')
 class Budget(Resource):
-    def get(self):
-        query = db.session.query(BudgetItem)
-        #apply user related filters
-        res = [budgetItemSchema.dump(result)[0] for result in query]
-        return res
+    @api.doc(security='amivapitoken')
+    @authenticate()
+    def get(self, user):
+        budgetAccessData = BudgetItemAccess(user)
+        return dbRequest.getSerializedElements(budgetAccessData)
 
 
 @api.route('/confirmed')
 class BudgetConf(Resource):
-    def get(self):
-        query = db.session.query(BudgetItem, BudgetConfirmed)
-        query = query.filter(BudgetItem.financial_year == BudgetConfirmed.financial_year)
-        query = query.filter(BudgetItem.budgetitem_id == BudgetConfirmed.budgetitem_id)
-        #apply user related filters
-        res = []
-        for result in query:
-            temp = budgetItemSchema.dump(result[0])[0]
-            temp.update(budgetConfirmedSchema.dump(result[1])[0])
-            res.append(temp)
+    @api.doc(security='amivapitoken')
+    @authenticate()
+    def get(self,user):
+        budgetAccessData = BudgetItemAccess(user)
+        budgetConfAccessData = BudgetConfirmedAccess(user)
+        res = dbRequest.embedElement(budgetConfAccessData,{'budget_item':budgetAccessData})
         return res
 
 @api.route('/calculated')

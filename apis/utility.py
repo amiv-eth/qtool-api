@@ -19,8 +19,10 @@ def authenticate(requireUserLevelBit = None):
 				user = query.filter(User.user_id == 108).first()
 			elif token == 'merch-admin':
 				user = query.filter(User.user_id == 2).first()
-			elif token == 'blitz-quaestor':
+			elif token == 'brauko-quaestor':
 				user = query.filter(User.user_id == 7).first()
+			elif token == 'blitz-quaestor':
+				user = query.filter(User.user_id == 999).first()
 			elif token == "quaestor":
 				user = query.filter(User.user_id == 100).first()
 			else:
