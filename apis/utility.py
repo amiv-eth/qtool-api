@@ -61,3 +61,4 @@ def schemaToDict(schema):
 			elif marshType == marshmallow.fields.Float:
 				modelInfo[field_name] = fields.Float
 	return modelInfo
+

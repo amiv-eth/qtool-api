@@ -59,22 +59,6 @@ receiptParams = {}
 for arg in receipt_filters:
 	receiptParams[arg] = ""
 
-"""
-transaction_model = api.model('Transaction', {
-    'financial_year': fields.Integer,
-    'date': fields.DateTime,
-    'type_id': fields.Integer,
-    'description': fields.String,
-    'category_id': fields.Integer,
-    'budgetitem_id': fields.Integer,
-    'account_id': fields.Integer,
-    'is_valid': fields.Boolean,
-    'amount': fields.Float,
-    'currency_id': fields.Integer,
-    'user_id': fields.Integer,
-    'comment': fields.String
-})
-"""
 
 transaction_model = api.model('Transaction', schemaToDict(TransactionSchema))
 
@@ -96,11 +80,8 @@ class Transactions(Resource):
 
     @api.doc(security='amivapitoken')
     @api.expect(transaction_model)
-    @authenticate()
+    @authenticate(requiredUserLevelBit = [9])
     def post(self,user):
-        privileges = user.user_privileges
-        if not (privileges>>9)&1:
-            return {"message": "User not authorized."}, 401
         trans = transactionSchema.load(api.payload)[0]
         newTransaction = Transaction(
             financial_year=trans['financial_year'],
@@ -135,11 +116,7 @@ class ReceiptById(Resource):
     def patch(self, id, user):
         transactionAccessData = TransactionAccess(user)
         newData = transactionSchema.load(api.payload)[0]
-        success = transactionRequest.patchElement(id, transactionAccessData, newData)
-        if success:
-            return {'message': 'Operation successful.'}, 202
-        else:
-            return {'message': 'Operation failed.'}, 500
+        return transactionRequest.patchElement(id, transactionAccessData, newData)
 
     @api.doc(security = 'amivapitoken')
     @authenticate(requiredUserLevelBit = [9])

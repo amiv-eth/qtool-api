@@ -60,7 +60,7 @@ class DatabaseRequest():
         for key in newData:
             setattr(element, key, newData[key])
         db.session.commit()
-        return True
+        return {'message': 'Operation successful.'}, 202
 
     def getElementById(self, id, accessControl):
         query = db.session.query(accessControl.databaseName).filter(accessControl.primaryKey == id)
