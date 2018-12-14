@@ -13,3 +13,14 @@ class UserAccess(AccessControl):
 
     def selectUserLevelSchema(self, user):
         return UserSchema(exclude = ('password', 'salt',))
+
+class CustomerAccess(AccessControl):
+    def specifyDatabase(self):
+        self.databaseName = Customer
+        self.primaryKey = Customer.customer_id
+
+    def applyUserLevelFilters(self, user):
+        return True
+
+    def selectUserLevelSchema(self,user):
+        return CustomerSchema()

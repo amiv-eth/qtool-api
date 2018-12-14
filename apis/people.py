@@ -5,7 +5,7 @@ from .utility import authenticate, schemaToDict
 from sql import db
 
 from requests.request import DatabaseRequest
-from requests.people_access import UserAccess
+from requests.people_access import UserAccess, CustomerAccess
 
 from schemas.people import UserSchema, CustomerSchema
 
@@ -58,3 +58,51 @@ class UserById(Resource):
         dbRequest.getElementById(id, accessData).user_privileges = 0
         db.session.commit()
         return {"message": "Operation successful."}, 202
+
+
+path = 'customer'
+schema = CustomerSchema()
+model = api.model(path.title(), schemaToDict(schema))
+access = CustomerAccess
+
+@api.route('/'+path)
+class Customer(Resource):
+    @api.doc(security='amivapitoken')
+    @authenticate(requiredUserLevelBit = [7,9])
+    def get(self,user):
+        accessData = access(user)
+        res = dbRequest.getSerializedElements(accessData)
+        return res, 200
+
+    @api.doc(security='amivapitoken')
+    @api.expect(model)
+    @authenticate(requiredUserLevelBit = [7,9])
+    def post(self, user):
+        schema.load_commit(api.payload)
+        return {'result': path.title() + ' added.'}, 201
+
+@api.route('/'+path+'/<string:id>')
+class CustomerById(Resource):
+    @api.doc(security='amivapitoken')
+    @authenticate(requiredUserLevelBit = [7,9])
+    def get(self,id,user):
+        accessData = access(user)
+        return dbRequest.getSerializedElementById(id,accessData)
+
+    @api.expect(model)
+    @api.doc(security='amivapitoken')
+    @authenticate(requiredUserLevelBit = [7,9])
+    def patch(self,id,user):
+        accessData = access(user)
+        newData = schema.load(api.payload)[0]
+        return dbRequest.patchElement(id,accessData,newData)
+
+"""
+    @api.doc(security = 'amivapitoken')
+    @authenticate(requiredUserLevelBit = [9])
+    def delete(self,id,user):
+        accessData = access(user)
+        dbRequest.getElementById(id, accessData).user_privileges = 0
+        db.session.commit()
+        return {"message": "Operation successful."}, 202
+"""

@@ -1,6 +1,6 @@
 from marshmallow import Schema, fields
 from sql import db
-from sql.people import User
+from sql.people import User, Customer
 
 class CustomerSchema(Schema):
     customer_id = fields.Int(dump_only = True)
@@ -16,6 +16,12 @@ class CustomerSchema(Schema):
     phone = fields.Str()
     email = fields.Email()
     quotation = fields.Str()
+
+    def load_commit(self, data):
+        desirialized = self.load(data)[0]
+        element = Customer(**desirialized)
+        db.session.add(element)
+        db.session.commit()
 
 
 class UserSchema(Schema):
