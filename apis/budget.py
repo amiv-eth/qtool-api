@@ -5,7 +5,7 @@ from sql.budget import BudgetItem
 from sql import db
 from sql.transactions import Transaction
 
-from .utility import authenticate
+from .utility import authenticate, schemaToDict
 
 from sqlalchemy import or_
 
@@ -22,13 +22,52 @@ budgetConfirmedSchema = BudgetConfirmedSchema()
 
 dbRequest = DatabaseRequest()
 
-@api.route('/')
-class Budget(Resource):
+
+path = 'items'
+schema = BudgetItemSchema()
+model = api.model(path.title(), schemaToDict(schema))
+access = BudgetItemAccess
+
+@api.route('/'+path)
+class Item(Resource):
     @api.doc(security='amivapitoken')
     @authenticate()
-    def get(self, user):
-        budgetAccessData = BudgetItemAccess(user)
-        return dbRequest.getSerializedElements(budgetAccessData)
+    def get(self,user):
+        accessData = access(user)
+        res = dbRequest.getSerializedElements(accessData)
+        return res, 200
+
+    @api.doc(security='amivapitoken')
+    @api.expect(model)
+    @authenticate(requiredUserLevelBit = [9])
+    def post(self, user):
+        schema.load_commit(api.payload)
+        return {'result': path.title() + ' added.'}, 201
+
+@api.route('/'+path+'/<string:id>')
+class ItemById(Resource):
+    @api.doc(security='amivapitoken')
+    @authenticate()
+    def get(self,id,user):
+        accessData = access(user)
+        return dbRequest.getSerializedElementById(id,accessData)
+
+    @api.expect(model)
+    @api.doc(security='amivapitoken')
+    @authenticate(requiredUserLevelBit = [9])
+    def patch(self,id,user):
+        accessData = access(user)
+        newData = schema.load(api.payload)[0]
+        return dbRequest.patchElement(id,accessData,newData)
+
+    @api.doc(security = 'amivapitoken')
+    @authenticate(requiredUserLevelBit = [9])
+    def delete(self,id,user):
+        accessData = access(user)
+        dbRequest.getElementById(id, accessData).financial_year = 0
+        db.session.commit()
+        return {"message": "Operation successful."}, 202
+
 
 
 @api.route('/confirmed')

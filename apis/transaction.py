@@ -82,23 +82,7 @@ class Transactions(Resource):
     @api.expect(transaction_model)
     @authenticate(requiredUserLevelBit = [9])
     def post(self,user):
-        trans = transactionSchema.load(api.payload)[0]
-        newTransaction = Transaction(
-            financial_year=trans['financial_year'],
-            date=trans['date'],
-            type_id=trans['type_id'],
-            description = trans['description'],
-            category_id = trans['category_id'],
-            budgetitem_id = trans['budgetitem_id'],
-            account_id = trans['account_id'],
-            is_valid = trans['is_valid'],
-            amount = trans['amount'],
-            currency_id = trans['currency_id'],
-            user_id = trans['user_id'],
-            comment = trans['comment']
-        )
-        db.session.add(newTransaction)
-        db.session.commit()
+        transactionSchema.load_commit(api.payload)
         return {'result': 'Transaction added.'}, 201
 
 	

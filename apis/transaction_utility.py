@@ -56,7 +56,6 @@ categoryRessource = generalizedRessource('category', TransactionCategorySchema, 
 currencyRessource = generalizedRessource('currency', TransactionCurrencySchema, CurrencyAccess)
 typeRessource = generalizedRessource('type', TransactionTypeSchema, TypeAccess)
 
-
 """
 
 class generalEndpoint(Resource):
@@ -100,11 +99,15 @@ class Account(generalEndpoint):
     schema = TransactionAccountSchema()
     model = api.model(name, schemaToDict(schema))
 
+    @api.expect(model)
+    @authenticate(requiredUserLevelBit = [9])
+    def post(self, user):
+        super().post()
+
 @api.route('/account/<string:id>')
 class AccountById(generalEndpointById):
     access = AccountAccess
     name = "Account"
     schema = TransactionAccountSchema()
     model = api.model(name, schemaToDict(schema))
-
 """

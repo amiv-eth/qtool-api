@@ -1,4 +1,6 @@
 from marshmallow import Schema, fields
+from sql import db
+from sql.transactions import Transaction
 #Used to transform json to DB-Objects and vice-versa
 class TransactionSchema(Schema):
 	id = fields.Int(dump_only=True)
@@ -7,14 +9,20 @@ class TransactionSchema(Schema):
 	type_id = fields.Int()
 	description = fields.Str()
 	category_id = fields.Int()
-	budgetitem_id = fields.Str()
-	account_id = fields.Str()
+	budgetitem_id = fields.Int()
+	account_id = fields.Int()
 	is_valid = fields.Bool()
 	amount = fields.Float()
 	currency_id = fields.Int()
 	amount_in_chf = fields.Float()
 	user_id = fields.Int()
 	comment = fields.Str()
+
+	def load_commit(self, data):
+	    desirialized = self.load(data)[0]
+	    element = Transaction(**desirialized)
+	    db.session.add(element)
+	    db.session.commit()
 
 
 
