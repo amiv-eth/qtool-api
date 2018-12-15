@@ -22,7 +22,8 @@ class DatabaseRequest():
     databaseName = None
     primaryKey = None
 
-    def embedElement(self, accessControl, embeddedData, embedingFilters = True):
+    def embedElement(self, accessControl, embeddedData, embedingFilters = True, page = 1):
+        perPage = 25
         userLevelFilters = accessControl.userLevelFilters
         query = db.session.query(accessControl.databaseName)
         for element in embeddedData:
@@ -30,6 +31,7 @@ class DatabaseRequest():
             query = query.add_entity(embeddedData[element].databaseName)
             query = query.join(embeddedData[element].databaseName)
         response = []
+        query = query.limit(perPage).offset(perPage*(page-1))
         for result in query:
             primaryItem = accessControl.schema.dump(result[0])[0]
             for idx, element in enumerate(embeddedData):
@@ -38,8 +40,9 @@ class DatabaseRequest():
         return response
 
 
-    def getSerializedElements(self, accessControl):
-        query = db.session.query(accessControl.databaseName).filter(accessControl.userLevelFilters)
+    def getSerializedElements(self, accessControl, page = 1):
+        perPage = 25
+        query = db.session.query(accessControl.databaseName).filter(accessControl.userLevelFilters).limit(perPage).offset(perPage*(page-1))
         response = [accessControl.schema.dump(result)[0] for result in query]
         return response
 
