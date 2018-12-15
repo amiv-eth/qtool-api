@@ -9,10 +9,12 @@ from sql.transaction_util import TransactionAccount
 
 from sqlalchemy import or_
 from schemas.transaction import TransactionSchema, TransactionQuery, ReceiptSchema
+from schemas.query import QuerySchema
 
 from requests.request import DatabaseRequest
 from requests.transaction_access import TransactionAccess, ReceiptAccess
 from requests.budget_access import BudgetItemAccess
+from requests.query_parser import queryParser
 
 
 api = Namespace('Transaction', description='Transaction related operations.')
@@ -23,41 +25,9 @@ transactionSchemaUser = TransactionSchema(exclude = ('account_id',))
 
 receiptSchema = ReceiptSchema()
 
-transaction_filters = {
-	"comment": Transaction.comment,
-    "user_id": Transaction.user_id,
-    "description": Transaction.description,
-    "type_id": Transaction.type_id,
-    "budgetitem_id": Transaction.budgetitem_id,
-    "currency_id": Transaction.currency_id,
-    "amount": Transaction.amount,
-    "is_valid": Transaction.is_valid,
-    "financial_year": Transaction.financial_year,
-    "date": Transaction.date,
-    "category_id": Transaction.category_id,
-    "id": Transaction.id,
-    "account_id": Transaction.account_id
-}
-
-receipt_filters = {
-	#Receipt Filters
-	"receipt_received": DetailReceipt.receipt_received,
-	"ezag_id": DetailReceipt.ezag_id,
-	"bankstatement_period": DetailReceipt.bankstatement_period
-}
-receipt_filters.update(transaction_filters)
-
-
-
-
-transactionParams = {}
-for arg in transaction_filters:
-	transactionParams[arg] = ""
-
-
-receiptParams = {}
-for arg in receipt_filters:
-	receiptParams[arg] = ""
+queryArguments = {}
+for arg in schemaToDict(QuerySchema):
+    queryArguments[arg] = ""
 
 
 transaction_model = api.model('Transaction', schemaToDict(TransactionSchema))
@@ -70,12 +40,13 @@ transactionRequest.primaryKey = Transaction.id
 
 @api.route('/')
 class Transactions(Resource):
-    @api.doc(params=transactionParams, security='amivapitoken')
+    @api.doc(params=queryArguments, security='amivapitoken')
     @api.response(401, 'Unauthorized')
     @authenticate()
     def get(self,user):
+        args = queryParser()
         transactionAccessData = TransactionAccess(user)
-        res = transactionRequest.getSerializedElements(transactionAccessData)
+        res = transactionRequest.getSerializedElements(transactionAccessData, **args)
         return res, 200
 
     @api.doc(security='amivapitoken')
@@ -112,7 +83,7 @@ class ReceiptById(Resource):
 
 @api.route('/receipt')
 class Receipts(Resource):
-    @api.doc(params=receiptParams, security = 'amivapitoken')
+    @api.doc(params=queryArguments, security = 'amivapitoken')
     @authenticate()
     def get(self,user):
         transactionAccessData = TransactionAccess(user)
