@@ -8,7 +8,7 @@ from sql.transactions import Transaction,  DetailReceipt
 from sql.transaction_util import TransactionAccount
 
 from sqlalchemy import or_
-from schemas.transaction import TransactionSchema, TransactionQuery, ReceiptSchema
+from schemas.transaction import TransactionSchema, TransactionQuery, ReceiptSchema, TransactionEmbeddable
 from schemas.query import QuerySchema, queryDocumentation
 
 from requests.request import DatabaseRequest
@@ -38,6 +38,14 @@ for attr, value in web_dict.items():
     q = q.filter(getattr(myClass, attr).like("%%%s%%" % value))
 """
 
+"""
+testDocu = api.model('Docu', {
+    'where': fields.Dictio(),
+    'sort': fields.String(),
+    'page': fields.String(),
+    'embedded': fields.Dict()
+})
+"""
 
 @api.route('/')
 class Transactions(Resource):
@@ -45,7 +53,7 @@ class Transactions(Resource):
     @api.response(401, 'Unauthorized')
     @authenticate()
     def get(self,user):
-        args = queryParser(Transaction)
+        args = queryParser(Transaction, TransactionEmbeddable)
         transactionAccessData = TransactionAccess(user)
         res = transactionRequest.getSerializedElements(transactionAccessData, **args)
         return res, 200

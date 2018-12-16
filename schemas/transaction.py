@@ -24,6 +24,14 @@ class TransactionSchema(Schema):
 	    db.session.add(element)
 	    db.session.commit()
 
+class TransactionEmbeddable(Schema):
+	type = fields.Bool()
+	category = fields.Bool()
+	budgetitem = fields.Bool()
+	account = fields.Bool()
+	currency = fields.Bool()
+	user = fields.Bool()
+
 
 
 class TransactionQuery(TransactionSchema):

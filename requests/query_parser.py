@@ -1,15 +1,20 @@
 from flask import request
 
+from marshmallow import fields
+
 from flask_restplus import abort
 
 from sqlalchemy import desc
 
-from schemas.query import QuerySchema
+from ast import literal_eval
 
-def queryParser(dbClass = None):
+from schemas.query import QuerySchema
+from schemas.transaction import TransactionSchema
+
+def queryParser(dbClass = None, embeddingSchema = None):
     arguments = request.args.to_dict()
-    querySchema = QuerySchema()
-    query = querySchema.load(arguments)[0]
+    schema = QuerySchema()
+    query = schema.load(arguments)[0]
     print(query)
     args = {}
     if 'page' in query:
@@ -18,11 +23,16 @@ def queryParser(dbClass = None):
         filterParser(query['where'],dbClass)
     if 'sort' in query:
         args['sort'] = sortingParser(query['sort'],dbClass)
+    if 'embedded' in query:
+        embeddingDict = literal_eval(query['embedded'])
+        embeddingParser(embeddingDict, embeddingSchema)
     return args
 
 def filterParser(whereStatement,dbClass):
-    print(query)
-    pass
+    transactionSchema = TransactionSchema()
+    print(type(whereStatement))
+    deserialized = transactionSchema.load(whereStatement)
+    print(deserialized)
 
 def sortingParser(sortingKey,dbClass):
     try:
@@ -36,5 +46,8 @@ def sortingParser(sortingKey,dbClass):
     except:
         abort(400, 'Invalid sorting parameter. The following syntax is expected: parameter.asc or parameter.desc.')
 
-def embeddingParser(query,dbClass):
-    pass
+def embeddingParser(embeddingDict,embeddingSchema):
+    schema = embeddingSchema()
+    print(embeddingDict)
+    embedding = schema.load(embeddingDict)[0]
+    print (embedding)
