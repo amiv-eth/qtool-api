@@ -20,7 +20,7 @@ def queryParser(dbClass = None):
         args['sort'] = sortingParser(query['sort'],dbClass)
     return args
 
-def filterParser(query,dbClass):
+def filterParser(whereStatement,dbClass):
     print(query)
     pass
 
