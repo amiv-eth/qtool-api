@@ -22,7 +22,7 @@ class DatabaseRequest():
     databaseName = None
     primaryKey = None
 
-    def embedElement(self, accessControl, embeddedData, embedingFilters = True, page = 1):
+    def embedElement(self, accessControl, embeddedData, embedingFilters = True, page = 1, sort = None):
         perPage = 25
         userLevelFilters = accessControl.userLevelFilters
         query = db.session.query(accessControl.databaseName)
@@ -40,10 +40,15 @@ class DatabaseRequest():
         return response
 
 
-    def getSerializedElements(self, accessControl, page = 1):
+    def getSerializedElements(self, accessControl, queryFilters = True ,page = 1, sort = None):
         perPage = 25
-        query = db.session.query(accessControl.databaseName).filter(accessControl.userLevelFilters).limit(perPage).offset(perPage*(page-1))
-        response = [accessControl.schema.dump(result)[0] for result in query]
+        query = db.session.query(accessControl.databaseName).filter(accessControl.userLevelFilters).filter(queryFilters)
+        total = query.count()
+        query = query.order_by(sort)
+        query = query.limit(perPage).offset(perPage*(page-1))
+        response = {}
+        response['items'] = [accessControl.schema.dump(result)[0] for result in query]
+        response['meta'] = {'page': page, 'results_per_page': perPage, 'total_results': total}
         return response
 
     """

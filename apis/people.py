@@ -8,6 +8,7 @@ from requests.request import DatabaseRequest
 from requests.people_access import UserAccess, CustomerAccess
 
 from schemas.people import UserSchema, CustomerSchema
+from schemas.query import queryDocumentation
 
 
 api = Namespace('People', description='People related operations.')
@@ -21,7 +22,7 @@ access = UserAccess
 
 @api.route('/'+path)
 class User(Resource):
-    @api.doc(security='amivapitoken')
+    @api.doc(params=queryDocumentation, security='amivapitoken')
     @authenticate()
     def get(self,user):
         accessData = access(user)

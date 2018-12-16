@@ -9,7 +9,7 @@ from sql.transaction_util import TransactionAccount
 
 from sqlalchemy import or_
 from schemas.transaction import TransactionSchema, TransactionQuery, ReceiptSchema
-from schemas.query import QuerySchema
+from schemas.query import QuerySchema, queryDocumentation
 
 from requests.request import DatabaseRequest
 from requests.transaction_access import TransactionAccess, ReceiptAccess
@@ -25,10 +25,6 @@ transactionSchemaUser = TransactionSchema(exclude = ('account_id',))
 
 receiptSchema = ReceiptSchema()
 
-queryArguments = {}
-for arg in schemaToDict(QuerySchema):
-    queryArguments[arg] = ""
-
 
 transaction_model = api.model('Transaction', schemaToDict(TransactionSchema))
 
@@ -36,15 +32,20 @@ transactionRequest = DatabaseRequest()
 transactionRequest.databaseName = Transaction
 transactionRequest.primaryKey = Transaction.id
 
+"""
+q = session.query(myClass)
+for attr, value in web_dict.items():
+    q = q.filter(getattr(myClass, attr).like("%%%s%%" % value))
+"""
 
 
 @api.route('/')
 class Transactions(Resource):
-    @api.doc(params=queryArguments, security='amivapitoken')
+    @api.doc(params=queryDocumentation, security='amivapitoken')
     @api.response(401, 'Unauthorized')
     @authenticate()
     def get(self,user):
-        args = queryParser()
+        args = queryParser(Transaction)
         transactionAccessData = TransactionAccess(user)
         res = transactionRequest.getSerializedElements(transactionAccessData, **args)
         return res, 200
@@ -83,7 +84,7 @@ class ReceiptById(Resource):
 
 @api.route('/receipt')
 class Receipts(Resource):
-    @api.doc(params=queryArguments, security = 'amivapitoken')
+    @api.doc(params=queryDocumentation, security = 'amivapitoken')
     @authenticate()
     def get(self,user):
         transactionAccessData = TransactionAccess(user)
