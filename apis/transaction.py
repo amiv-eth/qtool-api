@@ -62,7 +62,7 @@ class Transactions(Resource):
                 embeddedAccess[key] = embeddedQuery[key](user)
 
             print(embeddedAccess)
-            res = transactionRequest.embedElement(transactionAccessData,embeddedAccess)
+            res = transactionRequest.embedElement(transactionAccessData,embeddedAccess, **args)
         else:
             res = transactionRequest.getSerializedElements(transactionAccessData, **args)
         return res, 200

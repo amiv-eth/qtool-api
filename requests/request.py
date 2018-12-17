@@ -31,6 +31,8 @@ class DatabaseRequest():
             query = query.add_entity(embeddedData[element].databaseName)
             query = query.join(embeddedData[element].databaseName)
         response = []
+        print(userLevelFilters)
+        query = query.filter(userLevelFilters)
         query = query.order_by(sort)
         query = query.limit(perPage).offset(perPage*(page-1))
         for result in query:
