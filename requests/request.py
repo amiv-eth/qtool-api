@@ -31,6 +31,7 @@ class DatabaseRequest():
             query = query.add_entity(embeddedData[element].databaseName)
             query = query.join(embeddedData[element].databaseName)
         response = []
+        query = query.order_by(sort)
         query = query.limit(perPage).offset(perPage*(page-1))
         for result in query:
             primaryItem = accessControl.schema.dump(result[0])[0]
