@@ -1,6 +1,7 @@
 from marshmallow import Schema, fields
 from sql import db
 from sql.transactions import Transaction
+from schemas import EmbeddingSchema
 from requests.utility_access import AccountAccess, CategoryAccess, CurrencyAccess, TypeAccess
 from requests.budget_access import BudgetItemAccess
 from requests.people_access import UserAccess
@@ -27,7 +28,7 @@ class TransactionSchema(Schema):
 	    db.session.add(element)
 	    db.session.commit()
 
-class TransactionEmbeddable(Schema):
+class TransactionEmbeddable(EmbeddingSchema):
 	type = fields.Bool()
 	category = fields.Bool()
 	budgetitem = fields.Bool()
@@ -35,14 +36,14 @@ class TransactionEmbeddable(Schema):
 	currency = fields.Bool()
 	user = fields.Bool()
 
-embeddingQuery = {
-	'type': TypeAccess,
-	'category': CategoryAccess,
-	'account': AccountAccess,
-	'currency': CurrencyAccess,
-	'budgetitem': BudgetItemAccess,
-	'user': UserAccess
-}
+	accessData = {
+		'type': TypeAccess,
+		'category': CategoryAccess,
+		'account': AccountAccess,
+		'currency': CurrencyAccess,
+		'budgetitem': BudgetItemAccess,
+		'user': UserAccess
+	}
 
 
 

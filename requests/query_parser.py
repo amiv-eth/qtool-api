@@ -11,7 +11,7 @@ from ast import literal_eval
 from schemas.query import QuerySchema
 from schemas.transaction import TransactionSchema
 
-def queryParser(dbClass = None, embeddingSchema = None, embeddingQuery = {}):
+def queryParser(dbClass = None, embeddingSchema = None):
     arguments = request.args.to_dict()
     schema = QuerySchema()
     query = schema.load(arguments)[0]
@@ -29,7 +29,7 @@ def queryParser(dbClass = None, embeddingSchema = None, embeddingQuery = {}):
             abort(400, 'Invalid syntax for query parameter embedded, please pass a valid dicitionary.')
         if not (type(embeddingDict) is dict):
             abort(400, 'Invalid syntax for query parameter embedded, please pass a valid dicitionary.')
-        args['embedded'] = embeddingParser(embeddingDict, embeddingSchema, embeddingQuery)
+        args['embedded'] = embeddingParser(embeddingDict, embeddingSchema)
     return args
 
 def filterParser(whereStatement,dbClass):
@@ -41,7 +41,6 @@ def filterParser(whereStatement,dbClass):
 def sortingParser(sortingKey,dbClass):
     try:
         [key,ordering] = sortingKey.split('.')
-        print (key,ordering)
         sortingParameter = getattr(dbClass, key)
         if ordering == 'asc':
             return sortingParameter
@@ -50,13 +49,7 @@ def sortingParser(sortingKey,dbClass):
     except:
         abort(400, 'Invalid sorting parameter. The following syntax is expected: parameter.asc or parameter.desc.')
 
-def embeddingParser(embeddingDict,embeddingSchema, embeddingQuery):
+def embeddingParser(embeddingDict,embeddingSchema):
     schema = embeddingSchema()
     embedding = schema.load(embeddingDict)[0]
-    print (embedding)
-    embeddingAccess = {}
-    for key in embedding:
-        if embedding[key]:
-            embeddingAccess[key] = embeddingQuery[key]
-    print(embeddingAccess)
-    return embeddingAccess
+    return embedding

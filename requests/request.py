@@ -22,6 +22,48 @@ class DatabaseRequest():
     databaseName = None
     primaryKey = None
 
+    def getSerializedResponse(self, user, DatabaseAccessClass, page = 1, sort = None, embedded = {}, perPage = 25):
+        primaryDatabaseAccess = DatabaseAccessClass(user)
+        secondaryDatabaseAccess = {}
+        for key in embedded:
+            secondaryDatabaseAccess[key] = embedded[key](user)
+
+        # Initialize filters and query
+        userLevelFilters = primaryDatabaseAccess.userLevelFilters
+        query = db.session.query(primaryDatabaseAccess.databaseName)
+
+        # Join with all tables that are embedded
+        # ToDo: Embedding should yield left join in Transaction instead of innerjoin
+        for key in secondaryDatabaseAccess:
+            accessData = secondaryDatabaseAccess[key]
+            userLevelFilters = and_(userLevelFilters, accessData.userLevelFilters)
+            query = query.add_entity(accessData.databaseName).join(accessData.databaseName)
+
+        # Apply user level filters
+        query = query.filter(userLevelFilters)
+
+        # Apply query input and generate meta data
+        totalResults = query.count()
+        query = query.order_by(sort)
+        query = query.limit(perPage).offset(perPage*(page-1))
+        resultsOnPage = query.count()
+
+        # Construct response
+        # ToDo: Catch possible errors when dumping
+        items = []
+        for result in query:
+            if embedded:
+                primaryItem = primaryDatabaseAccess.schema.dump(result[0])[0]
+            else:
+                primaryItem = primaryDatabaseAccess.schema.dump(result)[0]
+            for idx, key in enumerate(secondaryDatabaseAccess):
+                primaryItem[key] = secondaryDatabaseAccess[key].schema.dump(result[idx+1])[0]
+            items.append(primaryItem)
+        response = {'items': items}
+        response['meta'] = {'page': page, 'results_on_this_page': resultsOnPage, 'max_results_per_page': perPage, 'total_results': totalResults}
+        return response
+
+
     def embedElement(self, accessControl, embeddedData, embedingFilters = True, page = 1, sort = None):
         perPage = 25
         userLevelFilters = accessControl.userLevelFilters
@@ -30,16 +72,21 @@ class DatabaseRequest():
             userLevelFilters = and_(userLevelFilters, embeddedData[element].userLevelFilters)
             query = query.add_entity(embeddedData[element].databaseName)
             query = query.join(embeddedData[element].databaseName)
-        response = []
+        items = []
         print(userLevelFilters)
         query = query.filter(userLevelFilters)
+        total = query.count()
         query = query.order_by(sort)
         query = query.limit(perPage).offset(perPage*(page-1))
+        onThisPage = query.count()
         for result in query:
             primaryItem = accessControl.schema.dump(result[0])[0]
             for idx, element in enumerate(embeddedData):
                 primaryItem[element] = embeddedData[element].schema.dump(result[idx+1])[0]
-            response.append(primaryItem)
+            items.append(primaryItem)
+        response = {}
+        response['items'] = items
+        response['meta'] = {'page': page, 'results_on_this_page': onThisPage,'max_results_per_page': perPage, 'total_results': total}
         return response
 
 

@@ -8,7 +8,7 @@ from sql.transactions import Transaction,  DetailReceipt
 from sql.transaction_util import TransactionAccount
 
 from sqlalchemy import or_
-from schemas.transaction import TransactionSchema, TransactionQuery, ReceiptSchema, TransactionEmbeddable, embeddingQuery
+from schemas.transaction import TransactionSchema, TransactionQuery, ReceiptSchema, TransactionEmbeddable
 from schemas.query import QuerySchema, queryDocumentation
 
 from requests.request import DatabaseRequest
@@ -53,18 +53,21 @@ class Transactions(Resource):
     @api.response(401, 'Unauthorized')
     @authenticate()
     def get(self,user):
-        args = queryParser(Transaction, TransactionEmbeddable, embeddingQuery)
+        args = queryParser(Transaction, TransactionEmbeddable)
+        """
         transactionAccessData = TransactionAccess(user)
         if 'embedded' in args:
-            embeddedAccess = {}
             embeddedQuery = args.pop('embedded')
+        else:
+            embeddedQuery = {}
             for key in embeddedQuery:
                 embeddedAccess[key] = embeddedQuery[key](user)
-
             print(embeddedAccess)
             res = transactionRequest.embedElement(transactionAccessData,embeddedAccess, **args)
         else:
             res = transactionRequest.getSerializedElements(transactionAccessData, **args)
+        """
+        res = transactionRequest.getSerializedResponse(user, TransactionAccess, **args)
         return res, 200
 
     @api.doc(security='amivapitoken')
