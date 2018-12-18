@@ -22,7 +22,7 @@ class DatabaseRequest():
     databaseName = None
     primaryKey = None
 
-    def getSerializedResponse(self, user, DatabaseAccessClass, page = 1, sort = None, embedded = {}, perPage = 25):
+    def getSerializedResponse(self, user, DatabaseAccessClass, page = 1, sort = None, embedded = {}, perPage = 25, where = True):
         primaryDatabaseAccess = DatabaseAccessClass(user)
         secondaryDatabaseAccess = {}
         for key in embedded:
@@ -41,6 +41,8 @@ class DatabaseRequest():
 
         # Apply user level filters
         query = query.filter(userLevelFilters)
+        # Apply query http query filters
+        query = query.filter(where)
 
         # Apply query input and generate meta data
         totalResults = query.count()

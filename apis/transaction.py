@@ -54,19 +54,6 @@ class Transactions(Resource):
     @authenticate()
     def get(self,user):
         args = queryParser(Transaction, TransactionEmbeddable)
-        """
-        transactionAccessData = TransactionAccess(user)
-        if 'embedded' in args:
-            embeddedQuery = args.pop('embedded')
-        else:
-            embeddedQuery = {}
-            for key in embeddedQuery:
-                embeddedAccess[key] = embeddedQuery[key](user)
-            print(embeddedAccess)
-            res = transactionRequest.embedElement(transactionAccessData,embeddedAccess, **args)
-        else:
-            res = transactionRequest.getSerializedElements(transactionAccessData, **args)
-        """
         res = transactionRequest.getSerializedResponse(user, TransactionAccess, **args)
         return res, 200
 
