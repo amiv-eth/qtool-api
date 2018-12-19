@@ -34,7 +34,7 @@ class DatabaseRequest():
         for key in secondaryDatabaseAccess:
             accessData = secondaryDatabaseAccess[key]
             userLevelFilters = and_(userLevelFilters, accessData.userLevelFilters)
-            query = query.add_entity(accessData.databaseName).join(accessData.databaseName)
+            query = query.add_entity(accessData.databaseName).outerjoin(accessData.databaseName)
 
         # Apply user level filters
         query = query.filter(userLevelFilters)

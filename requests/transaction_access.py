@@ -5,6 +5,13 @@ from .access_control import AccessControl
 
 from sqlalchemy import or_
 
+from marshmallow import fields
+
+from requests import EmbeddingSchema
+from requests.utility_access import AccountAccess, CategoryAccess, CurrencyAccess, TypeAccess
+from requests.budget_access import BudgetItemAccess
+from requests.people_access import UserAccess
+
 
 class TransactionAccess(AccessControl):
     def specifyDatabase(self):
@@ -31,6 +38,7 @@ class TransactionAccess(AccessControl):
         return transactionSchemaUser
 
 
+
 class ReceiptAccess(AccessControl):
     def specifyDatabase(self):
         self.databaseName = DetailReceipt
@@ -46,3 +54,31 @@ class ReceiptAccess(AccessControl):
         if (privileges>>8)&1 or (privileges>>9)&1:
             return receiptSchema
         return receiptSchemaUser
+
+
+class TransactionEmbeddable(EmbeddingSchema):
+    type = fields.Bool()
+    category = fields.Bool()
+    budgetitem = fields.Bool()
+    account = fields.Bool()
+    currency = fields.Bool()
+    user = fields.Bool()
+    receipt = fields.Bool()
+
+    accessData = {
+        'type': TypeAccess,
+        'category': CategoryAccess,
+        'account': AccountAccess,
+        'currency': CurrencyAccess,
+        'budgetitem': BudgetItemAccess,
+        'user': UserAccess,
+        'receipt': ReceiptAccess
+    }
+
+
+class ReceiptEmbeddable(EmbeddingSchema):
+    transaction = fields.Bool()
+
+    accessData = {
+        'transaction': TransactionAccess
+    }

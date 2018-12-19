@@ -3,13 +3,13 @@ from flask_restplus import Namespace, Resource
 from .utility import authenticate, schemaToDict
 
 from sql import db
-from sql.transactions import Transaction
+from sql.transactions import Transaction, DetailReceipt
 
-from schemas.transaction import TransactionSchema, ReceiptSchema, TransactionEmbeddable
+from schemas.transaction import TransactionSchema, ReceiptSchema
 from schemas.query import queryDocumentation
 
 from requests.request import DatabaseRequest
-from requests.transaction_access import TransactionAccess, ReceiptAccess
+from requests.transaction_access import TransactionAccess, ReceiptAccess, TransactionEmbeddable, ReceiptEmbeddable
 from requests.query_parser import queryParser
 
 
@@ -72,15 +72,19 @@ class ReceiptById(Resource):
         db.session.commit()
         return {"message": "Operation successful."}, 202
 
-"""
+
 @api.route('/receipt')
 class Receipts(Resource):
     @api.doc(params=queryDocumentation, security = 'amivapitoken')
     @authenticate()
     def get(self,user):
+        args = queryParser(DetailReceipt, ReceiptEmbeddable)
+        res = transactionRequest.getSerializedResponse(user, ReceiptAccess, **args)
+        return res, 200
+        """
         transactionAccessData = TransactionAccess(user)
         receiptAccessData = ReceiptAccess(user)
         budgetItemAccess = BudgetItemAccess(user)
         res = transactionRequest.embedElement(transactionAccessData,{'receipt_data':receiptAccessData, 'budget_item':budgetItemAccess})
         return res
-"""
+        """
