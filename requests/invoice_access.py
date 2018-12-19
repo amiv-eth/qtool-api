@@ -3,6 +3,11 @@ from sql.invoice import Invoice, InvoiceItem
 
 from .access_control import AccessControl
 
+from marshmallow import fields
+
+from requests import EmbeddingSchema
+from requests.people_access import UserAccess, CustomerAccess
+
 
 class InvoiceAccess(AccessControl):
     def specifyDatabase(self):
@@ -26,3 +31,12 @@ class InvoiceItemAccess(AccessControl):
 
     def selectUserLevelSchema(self, user):
         return InvoiceItemSchema()
+
+class InvoiceEmbeddable(EmbeddingSchema):
+    user = fields.Bool()
+    customer = fields.Bool()
+
+    accessData = {
+        'user': UserAccess,
+        'customer': CustomerAccess
+    }

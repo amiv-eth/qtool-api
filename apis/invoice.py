@@ -1,14 +1,15 @@
 from flask_restplus import Namespace, Resource, fields
 
-from .utility import authenticate
+from .utility import authenticate, queryDocumentation
 
 from sql import db
 from sql.invoice import Invoice, InvoiceItem
 
 from schemas.invoice import InvoiceSchema, InvoiceItemSchema
 
+from requests.query_parser import queryParser
 from requests.request import DatabaseRequest
-from requests.invoice_access import InvoiceAccess, InvoiceItemAccess
+from requests.invoice_access import InvoiceAccess, InvoiceItemAccess, InvoiceEmbeddable
 
 api = Namespace('Invoice', description='Invoice related operations.')
 
@@ -19,10 +20,11 @@ invoiceItemSchema = InvoiceItemSchema()
 
 @api.route('/')
 class Invoices(Resource):
-    @api.doc(security='amivapitoken')
+    @api.doc(params = queryDocumentation, security='amivapitoken')
     @authenticate(requiredUserLevelBit = [7,8,9])
     def get(self,user):
-        res = dbRequest.getSerializedResponse(user, InvoiceAccess)
+        args = queryParser(Invoice, InvoiceEmbeddable)
+        res = dbRequest.getSerializedResponse(user, InvoiceAccess, **args)
         return res, 200
 
 

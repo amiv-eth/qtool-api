@@ -1,6 +1,6 @@
 from flask_restplus import Namespace, Resource
 
-from .utility import authenticate, schemaToDict
+from .utility import authenticate, schemaToDict, queryDocumentation
 
 from sql import db
 
@@ -8,7 +8,6 @@ from requests.request import DatabaseRequest
 from requests.people_access import UserAccess, CustomerAccess
 
 from schemas.people import UserSchema, CustomerSchema
-from schemas.query import queryDocumentation
 
 
 api = Namespace('People', description='People related operations.')

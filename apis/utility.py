@@ -62,3 +62,9 @@ def schemaToDict(schema):
 				modelInfo[field_name] = fields.Float
 	return modelInfo
 
+queryDocumentation = {
+    'where': "Filter criterion for database queries.",
+    'sort': "Value by which the results are sorted by.",
+    'page': "Number of the resultspage to display. Per page a maximum of 25 entries are displayed.",
+    'embedded': "Toggle the embedding of additional ressources in the response."
+}

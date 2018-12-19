@@ -1,12 +1,11 @@
 from flask_restplus import Namespace, Resource
 
-from .utility import authenticate, schemaToDict
+from .utility import authenticate, schemaToDict, queryDocumentation
 
 from sql import db
 from sql.transactions import Transaction, DetailReceipt
 
 from schemas.transaction import TransactionSchema, ReceiptSchema
-from schemas.query import queryDocumentation
 
 from requests.request import DatabaseRequest
 from requests.transaction_access import TransactionAccess, ReceiptAccess, TransactionEmbeddable, ReceiptEmbeddable

@@ -2,6 +2,7 @@ from flask_restplus import Namespace, Resource
 
 from .utility import authenticate, schemaToDict
 
+from sql.transaction_util import TransactionAccount, TransactionCategory
 
 from requests.request import DatabaseRequest
 from requests.utility_access import AccountAccess, CategoryAccess, CurrencyAccess, TypeAccess
@@ -48,7 +49,6 @@ def generalizedRessource(path, schemaClass, access):
             accessData = access(user)
             newData = schema.load(api.payload)[0]
             return dbRequest.patchElement(id,accessData,newData)
-
 
 accountRessource = generalizedRessource('account', TransactionAccountSchema,AccountAccess)
 categoryRessource = generalizedRessource('category', TransactionCategorySchema, CategoryAccess)
