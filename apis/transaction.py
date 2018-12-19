@@ -1,19 +1,15 @@
-from flask_restplus import Namespace, Resource, fields
-from flask import request
+from flask_restplus import Namespace, Resource
 
 from .utility import authenticate, schemaToDict
 
 from sql import db
-from sql.transactions import Transaction,  DetailReceipt
-from sql.transaction_util import TransactionAccount
+from sql.transactions import Transaction
 
-from sqlalchemy import or_
-from schemas.transaction import TransactionSchema, TransactionQuery, ReceiptSchema, TransactionEmbeddable
-from schemas.query import QuerySchema, queryDocumentation
+from schemas.transaction import TransactionSchema, ReceiptSchema, TransactionEmbeddable
+from schemas.query import queryDocumentation
 
 from requests.request import DatabaseRequest
 from requests.transaction_access import TransactionAccess, ReceiptAccess
-from requests.budget_access import BudgetItemAccess
 from requests.query_parser import queryParser
 
 
@@ -32,20 +28,7 @@ transactionRequest = DatabaseRequest()
 transactionRequest.databaseName = Transaction
 transactionRequest.primaryKey = Transaction.id
 
-"""
-q = session.query(myClass)
-for attr, value in web_dict.items():
-    q = q.filter(getattr(myClass, attr).like("%%%s%%" % value))
-"""
 
-"""
-testDocu = api.model('Docu', {
-    'where': fields.Dictio(),
-    'sort': fields.String(),
-    'page': fields.String(),
-    'embedded': fields.Dict()
-})
-"""
 
 @api.route('/')
 class Transactions(Resource):
@@ -89,6 +72,7 @@ class ReceiptById(Resource):
         db.session.commit()
         return {"message": "Operation successful."}, 202
 
+"""
 @api.route('/receipt')
 class Receipts(Resource):
     @api.doc(params=queryDocumentation, security = 'amivapitoken')
@@ -99,3 +83,4 @@ class Receipts(Resource):
         budgetItemAccess = BudgetItemAccess(user)
         res = transactionRequest.embedElement(transactionAccessData,{'receipt_data':receiptAccessData, 'budget_item':budgetItemAccess})
         return res
+"""

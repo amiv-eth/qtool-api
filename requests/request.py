@@ -19,9 +19,6 @@ class UserLevels(enum.Enum):
 
 
 class DatabaseRequest():
-    databaseName = None
-    primaryKey = None
-
     def getSerializedResponse(self, user, DatabaseAccessClass, page = 1, sort = None, embedded = {}, perPage = 25, where = True):
         primaryDatabaseAccess = DatabaseAccessClass(user)
         secondaryDatabaseAccess = {}
@@ -65,51 +62,6 @@ class DatabaseRequest():
         response['meta'] = {'page': page, 'results_on_this_page': resultsOnPage, 'max_results_per_page': perPage, 'total_results': totalResults}
         return response
 
-
-    def embedElement(self, accessControl, embeddedData, embedingFilters = True, page = 1, sort = None):
-        perPage = 25
-        userLevelFilters = accessControl.userLevelFilters
-        query = db.session.query(accessControl.databaseName)
-        for element in embeddedData:
-            userLevelFilters = and_(userLevelFilters, embeddedData[element].userLevelFilters)
-            query = query.add_entity(embeddedData[element].databaseName)
-            query = query.join(embeddedData[element].databaseName)
-        items = []
-        print(userLevelFilters)
-        query = query.filter(userLevelFilters)
-        total = query.count()
-        query = query.order_by(sort)
-        query = query.limit(perPage).offset(perPage*(page-1))
-        onThisPage = query.count()
-        for result in query:
-            primaryItem = accessControl.schema.dump(result[0])[0]
-            for idx, element in enumerate(embeddedData):
-                primaryItem[element] = embeddedData[element].schema.dump(result[idx+1])[0]
-            items.append(primaryItem)
-        response = {}
-        response['items'] = items
-        response['meta'] = {'page': page, 'results_on_this_page': onThisPage,'max_results_per_page': perPage, 'total_results': total}
-        return response
-
-
-    def getSerializedElements(self, accessControl, queryFilters = True ,page = 1, sort = None):
-        perPage = 25
-        query = db.session.query(accessControl.databaseName).filter(accessControl.userLevelFilters).filter(queryFilters)
-        total = query.count()
-        query = query.order_by(sort)
-        query = query.limit(perPage).offset(perPage*(page-1))
-        response = {}
-        response['items'] = [accessControl.schema.dump(result)[0] for result in query]
-        response['meta'] = {'page': page, 'results_per_page': perPage, 'total_results': total}
-        return response
-
-    """
-    def getSerializedElements(self, schema, userLevelFilters = True, queryFilters = True):
-        query = db.session.query(self.databaseName).filter(and_(userLevelFilters,queryFilters))
-        # ToDo check for errors
-        response = [schema.dump(result)[0] for result in query]
-        return response
-    """
 
     def getSerializedElementById(self, id, accessControl):
         element = self.getElementById(id,accessControl)

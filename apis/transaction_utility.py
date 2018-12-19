@@ -23,8 +23,7 @@ def generalizedRessource(path, schemaClass, access):
         @api.doc(security='amivapitoken')
         @authenticate()
         def get(self,user):
-            accessData = access(user)
-            res = dbRequest.getSerializedElements(accessData)
+            res = dbRequest.getSerializedResponse(user,access)
             return res, 200
 
         @api.doc(security='amivapitoken')

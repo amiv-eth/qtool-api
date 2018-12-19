@@ -33,8 +33,7 @@ class Item(Resource):
     @api.doc(security='amivapitoken')
     @authenticate()
     def get(self,user):
-        accessData = access(user)
-        res = dbRequest.getSerializedElements(accessData)
+        res = dbRequest.getSerializedResponse(user,access)
         return res, 200
 
     @api.doc(security='amivapitoken')
@@ -75,9 +74,7 @@ class BudgetConf(Resource):
     @api.doc(security='amivapitoken')
     @authenticate()
     def get(self,user):
-        budgetAccessData = BudgetItemAccess(user)
-        budgetConfAccessData = BudgetConfirmedAccess(user)
-        res = dbRequest.embedElement(budgetConfAccessData,{'budget_item':budgetAccessData})
+        res = dbRequest.getSerializedResponse(user,BudgetConfirmedAccess)
         return res
 
 @api.route('/calculated')

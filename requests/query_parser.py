@@ -7,7 +7,6 @@ from sqlalchemy import desc, or_, and_
 from ast import literal_eval
 
 from schemas.query import QuerySchema
-from schemas.transaction import TransactionQuery
 
 def queryParser(dbClass = None, embeddingSchema = None):
     arguments = request.args.to_dict()

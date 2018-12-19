@@ -25,8 +25,8 @@ class User(Resource):
     @api.doc(params=queryDocumentation, security='amivapitoken')
     @authenticate()
     def get(self,user):
-        accessData = access(user)
-        res = dbRequest.getSerializedElements(accessData)
+        access = UserAccess
+        res = dbRequest.getSerializedResponse(user,access)
         return res, 200
 
     @api.doc(security='amivapitoken')
@@ -71,8 +71,7 @@ class Customer(Resource):
     @api.doc(security='amivapitoken')
     @authenticate(requiredUserLevelBit = [7,9])
     def get(self,user):
-        accessData = access(user)
-        res = dbRequest.getSerializedElements(accessData)
+        res = dbRequest.getSerializedResponse(user, access)
         return res, 200
 
     @api.doc(security='amivapitoken')

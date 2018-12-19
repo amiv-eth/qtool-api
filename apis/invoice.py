@@ -22,8 +22,7 @@ class Invoices(Resource):
     @api.doc(security='amivapitoken')
     @authenticate(requiredUserLevelBit = [7,8,9])
     def get(self,user):
-        invoiceAccessData = InvoiceAccess(user)
-        res = dbRequest.getSerializedElements(invoiceAccessData)
+        res = dbRequest.getSerializedResponse(user, InvoiceAccess)
         return res, 200
 
 
@@ -34,12 +33,6 @@ class InvoicesDetails(Resource):
     @authenticate(requiredUserLevelBit = [7,8,9])
     def get(self,user):
         # Edge case, need to embed multiple items! 
-        """
-        invoiceAccessData = InvoiceAccess(user)
-        invoiceItemAccessData = InvoiceItemAccess(user)
-        res = dbRequest.embedElement(invoiceAccessData,{'items':invoiceItemAccessData})
-        return res, 200
-        """
         query = db.session.query(Invoice)
         #apply user related filters
         res = []
