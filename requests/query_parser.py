@@ -42,37 +42,37 @@ def queryParser(dbClass = None, embeddingSchema = None):
 
 
 def filterParser(whereStatement,dbClass):
-    for key in whereStatement:
-        if 'and' == key and len(whereStatement) == 1:
-            filterList = whereStatement[key]
-            if not (type(filterList) is list):
-                abort(400, 'Invalid syntax for query parameter where. An and statement requires a list of dicitionaries!')
+    if len(whereStatement) > 1:
+        abort(400, 'Invalid syntax for query parameter where, wrong number of arguments!')
+    
+    key = [k for k in whereStatement][0]
+    if 'and' == key:
+        filterList = whereStatement[key]
+        if not (type(filterList) is list):
+            abort(400, 'Invalid syntax for query parameter where. An and statement requires a list of dicitionaries!')
+        filterCondition = True
+        for statement in filterList:
+            filterCondition = and_(filterCondition, filterParser(statement, dbClass))
+
+    elif 'or' == key:
+        filterList = whereStatement[key]
+        if not (type(filterList) is list):
+            abort(400, 'Invalid syntax for query parameter where. An or statement requires a list of dicitionaries!')
+        filterCondition = False
+        for statement in filterList:
+            filterCondition = or_(filterCondition, filterParser(statement, dbClass))
+        if len(filterList) == 0:
             filterCondition = True
-            for statement in filterList:
-                filterCondition = and_(filterCondition, filterParser(statement, dbClass))
 
-        elif 'or' == key and len(whereStatement) == 1:
-            filterList = whereStatement[key]
-            if not (type(filterList) is list):
-                abort(400, 'Invalid syntax for query parameter where. An or statement requires a list of dicitionaries!')
-            filterCondition = False
-            for statement in filterList:
-                filterCondition = or_(filterCondition, filterParser(statement, dbClass))
-            if len(filterList) == 0:
-                filterCondition = True
-
-        elif len(whereStatement) == 3:
-            filterCondition = createFilterCondition(whereStatement, dbClass)
-        elif len(whereStatement) == 1:
-            abort(400, 'Invalid syntax for query parameter where, ' + key + ' is not a valid operator!')
-        else: 
-            abort(400, 'Invalid syntax for query parameter where, wrong number of arguments!')
+    else:
+        filterCondition = createFilterCondition(whereStatement, dbClass)
+            
     return filterCondition
 
 def createFilterCondition(filterStatement, dbClass):
-    attr = filterStatement['a']
-    op = filterStatement['o']
-    val = filterStatement['v']    
+    condition = [key for key in filterStatement][0]
+    [attr, op] = condition.split('.')
+    val = filterStatement[condition]
     # ToDo: schema load for input validation
     if op == "eq":
         condition = getattr(dbClass, attr) == val
