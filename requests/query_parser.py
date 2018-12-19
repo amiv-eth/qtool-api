@@ -61,18 +61,17 @@ def filterParser(whereStatement,dbClass):
         filterCondition = False
         for statement in filterList:
             filterCondition = or_(filterCondition, filterParser(statement, dbClass))
+        # Ensure consistent results, when receiving an empty or statement.
         if len(filterList) == 0:
             filterCondition = True
 
     else:
-        filterCondition = createFilterCondition(whereStatement, dbClass)
+        filterCondition = createFilterCondition(key,whereStatement[key], dbClass)
             
     return filterCondition
 
-def createFilterCondition(filterStatement, dbClass):
-    condition = [key for key in filterStatement][0]
+def createFilterCondition(condition, val, dbClass):
     [attr, op] = condition.split('.')
-    val = filterStatement[condition]
     # ToDo: schema load for input validation
     if op == "eq":
         condition = getattr(dbClass, attr) == val
