@@ -1,6 +1,7 @@
 from flask_restplus import Namespace, Resource
 
 from .utility import authenticate, schemaToDict
+from .template import EndpointConfiguration
 
 from sql.transaction_util import TransactionAccount, TransactionCategory
 
@@ -50,10 +51,39 @@ def generalizedRessource(path, schemaClass, access):
             newData = schema.load(api.payload)[0]
             return dbRequest.patchElement(id,accessData,newData)
 
-accountRessource = generalizedRessource('account', TransactionAccountSchema,AccountAccess)
+#accountRessource = generalizedRessource('account', TransactionAccountSchema,AccountAccess)
 categoryRessource = generalizedRessource('category', TransactionCategorySchema, CategoryAccess)
 currencyRessource = generalizedRessource('currency', TransactionCurrencySchema, CurrencyAccess)
 typeRessource = generalizedRessource('type', TransactionTypeSchema, TypeAccess)
+
+
+accountEndpoint = EndpointConfiguration(api, 'account', AccountAccess, TransactionAccountSchema, None)
+
+
+@api.route('/'+accountEndpoint.path)
+@api.doc(security = 'amivapitoken')
+class AccountEndpoint(Resource):
+    @authenticate()
+    def get(self,user):
+        return accountEndpoint.getRequest(user)
+        
+    @api.expect(accountEndpoint.model)
+    @authenticate(requiredUserLevelBit = [9])
+    def post(self, user):
+        return accountEndpoint.postRequest(user)
+
+@api.route('/'+accountEndpoint.path+'/<string:id>')
+@api.doc(security = 'amivapitoken')
+class AccountEndpointById(Resource):
+    @authenticate()
+    def get(self,id,user):
+        return accountEndpoint.getRequestById(user,id)
+
+    @api.expect(accountEndpoint.model)
+    @authenticate(requiredUserLevelBit = [9])
+    def patch(self,id,user):
+        return accountEndpoint.patchRequestById(user,id)
+
 
 """
 
