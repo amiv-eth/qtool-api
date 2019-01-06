@@ -1,9 +1,7 @@
 from flask_restplus import Namespace, Resource
 
-from .utility import authenticate, schemaToDict
+from .utility import authenticate
 from .template import EndpointConfiguration
-
-from sql.transaction_util import TransactionAccount, TransactionCategory
 
 from requests.request import DatabaseRequest
 from requests.utility_access import AccountAccess, CategoryAccess, CurrencyAccess, TypeAccess
@@ -16,127 +14,109 @@ api = Namespace('Transaction Utility', path='/utility', description='Operations 
 dbRequest = DatabaseRequest()
 
 
+accountConfiguration = EndpointConfiguration(api, 'account', AccountAccess, TransactionAccountSchema, None)
 
-def generalizedRessource(path, schemaClass, access):
-    schema = schemaClass()
-    model = api.model(path.title(), schemaToDict(schema))
-    @api.route('/'+path)
-    class className(Resource):
-        @api.doc(security='amivapitoken')
-        @authenticate()
-        def get(self,user):
-            res = dbRequest.getSerializedResponse(user,access)
-            return res, 200
-
-        @api.doc(security='amivapitoken')
-        @api.expect(model)
-        @authenticate(requiredUserLevelBit = [9])
-        def post(self, user):
-            schema.load_commit(api.payload)
-            return {'result': path.title() + ' added.'}, 201
-
-    @api.route('/'+path+'/<string:id>')
-    class classNameId(Resource):
-        @api.doc(security='amivapitoken')
-        @authenticate()
-        def get(self,id,user):
-            accessData = access(user)
-            return dbRequest.getSerializedElementById(id,accessData)
-
-        @api.expect(model)
-        @api.doc(security='amivapitoken')
-        @authenticate(requiredUserLevelBit = [9])
-        def patch(self,id,user):
-            accessData = access(user)
-            newData = schema.load(api.payload)[0]
-            return dbRequest.patchElement(id,accessData,newData)
-
-#accountRessource = generalizedRessource('account', TransactionAccountSchema,AccountAccess)
-categoryRessource = generalizedRessource('category', TransactionCategorySchema, CategoryAccess)
-currencyRessource = generalizedRessource('currency', TransactionCurrencySchema, CurrencyAccess)
-typeRessource = generalizedRessource('type', TransactionTypeSchema, TypeAccess)
-
-
-accountEndpoint = EndpointConfiguration(api, 'account', AccountAccess, TransactionAccountSchema, None)
-
-
-@api.route('/'+accountEndpoint.path)
+@api.route('/'+accountConfiguration.path)
 @api.doc(security = 'amivapitoken')
 class AccountEndpoint(Resource):
     @authenticate()
     def get(self,user):
-        return accountEndpoint.getRequest(user)
+        return accountConfiguration.getRequest(user)
         
-    @api.expect(accountEndpoint.model)
+    @api.expect(accountConfiguration.model)
     @authenticate(requiredUserLevelBit = [9])
     def post(self, user):
-        return accountEndpoint.postRequest(user)
+        return accountConfiguration.postRequest(user)
 
-@api.route('/'+accountEndpoint.path+'/<string:id>')
+@api.route('/'+accountConfiguration.path+'/<string:id>')
 @api.doc(security = 'amivapitoken')
 class AccountEndpointById(Resource):
     @authenticate()
     def get(self,id,user):
-        return accountEndpoint.getRequestById(user,id)
+        return accountConfiguration.getRequestById(user,id)
 
-    @api.expect(accountEndpoint.model)
+    @api.expect(accountConfiguration.model)
     @authenticate(requiredUserLevelBit = [9])
     def patch(self,id,user):
-        return accountEndpoint.patchRequestById(user,id)
+        return accountConfiguration.patchRequestById(user,id)
 
 
-"""
+categoryConfiguration = EndpointConfiguration(api, 'category', CategoryAccess, TransactionCategorySchema, None)
 
-class generalEndpoint(Resource):
-    model = "Default"
-
-    @api.doc(security='amivapitoken')
+@api.route('/'+categoryConfiguration.path)
+@api.doc(security = 'amivapitoken')
+class CategoryEndpoint(Resource):
     @authenticate()
     def get(self,user):
-        accessData = self.access(user)
-        res = dbRequest.getSerializedElements(accessData)
-        return res, 200
-
-    @api.doc(security='amivapitoken')
-    @api.expect(model)
+        return categoryConfiguration.getRequest(user)
+        
+    @api.expect(categoryConfiguration.model)
     @authenticate(requiredUserLevelBit = [9])
     def post(self, user):
-        self.schema.load_commit(api.payload)
-        return {'result': self.name + ' added.'}, 201
+        return categoryConfiguration.postRequest(user)
 
-class generalEndpointById(Resource):
-    model = "Default"
-
-    @api.doc(security='amivapitoken')
+@api.route('/'+categoryConfiguration.path+'/<string:id>')
+@api.doc(security = 'amivapitoken')
+class CategoryEndpointById(Resource):
     @authenticate()
     def get(self,id,user):
-        accessData = self.access(user)
-        return dbRequest.getSerializedElementById(id,accessData)
+        return categoryConfiguration.getRequestById(user,id)
 
-    @api.expect(model)
-    @api.doc(security='amivapitoken')
+    @api.expect(categoryConfiguration.model)
     @authenticate(requiredUserLevelBit = [9])
     def patch(self,id,user):
-        accessData = self.access(user)
-        newData = self.schema.load(api.payload)[0]
-        return dbRequest.patchElement(id,accessData,newData)
+        return categoryConfiguration.patchRequestById(user,id)
 
-@api.route('/account')
-class Account(generalEndpoint):
-    access = AccountAccess
-    name = "Account"
-    schema = TransactionAccountSchema()
-    model = api.model(name, schemaToDict(schema))
 
-    @api.expect(model)
+currencyConfiguration = EndpointConfiguration(api, 'currency', CurrencyAccess, TransactionCurrencySchema, None)
+
+@api.route('/'+currencyConfiguration.path)
+@api.doc(security = 'amivapitoken')
+class CurrencyEndpoint(Resource):
+    @authenticate()
+    def get(self,user):
+        return currencyConfiguration.getRequest(user)
+        
+    @api.expect(currencyConfiguration.model)
     @authenticate(requiredUserLevelBit = [9])
     def post(self, user):
-        super().post()
+        return currencyConfiguration.postRequest(user)
 
-@api.route('/account/<string:id>')
-class AccountById(generalEndpointById):
-    access = AccountAccess
-    name = "Account"
-    schema = TransactionAccountSchema()
-    model = api.model(name, schemaToDict(schema))
-"""
+@api.route('/'+currencyConfiguration.path+'/<string:id>')
+@api.doc(security = 'amivapitoken')
+class CurrencyEndpointById(Resource):
+    @authenticate()
+    def get(self,id,user):
+        return currencyConfiguration.getRequestById(user,id)
+
+    @api.expect(currencyConfiguration.model)
+    @authenticate(requiredUserLevelBit = [9])
+    def patch(self,id,user):
+        return currencyConfiguration.patchRequestById(user,id)
+
+
+typeConfiguration = EndpointConfiguration(api, 'type', TypeAccess, TransactionTypeSchema, None)
+
+@api.route('/'+typeConfiguration.path)
+@api.doc(security = 'amivapitoken')
+class TypeEndpoint(Resource):
+    @authenticate()
+    def get(self,user):
+        return typeConfiguration.getRequest(user)
+        
+    @api.expect(typeConfiguration.model)
+    @authenticate(requiredUserLevelBit = [9])
+    def post(self, user):
+        return typeConfiguration.postRequest(user)
+
+@api.route('/'+typeConfiguration.path+'/<string:id>')
+@api.doc(security = 'amivapitoken')
+class TypeEndpointById(Resource):
+    @authenticate()
+    def get(self,id,user):
+        return typeConfiguration.getRequestById(user,id)
+
+    @api.expect(typeConfiguration.model)
+    @authenticate(requiredUserLevelBit = [9])
+    def patch(self,id,user):
+        return typeConfiguration.patchRequestById(user,id)
