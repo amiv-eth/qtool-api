@@ -9,6 +9,7 @@ class AccountAccess(AccessControl):
     def specifyDatabase(self):
         self.databaseName = TransactionAccount
         self.primaryKey = TransactionAccount.account
+        self.baseSchema = TransactionAccountSchema
 
     def applyUserLevelFilters(self,user):
         return True
@@ -20,6 +21,7 @@ class CategoryAccess(AccessControl):
     def specifyDatabase(self):
         self.databaseName = TransactionCategory
         self.primaryKey = TransactionCategory.category
+        self.baseSchema = TransactionCategorySchema
 
     def applyUserLevelFilters(self, user):
         return True
@@ -31,6 +33,7 @@ class CurrencyAccess(AccessControl):
     def specifyDatabase(self):
         self.databaseName = TransactionCurrency
         self.primaryKey = TransactionCurrency.currency_id
+        self.baseSchema = TransactionCurrencySchema
 
     def applyUserLevelFilters(self, user):
         return True
@@ -42,6 +45,7 @@ class TypeAccess(AccessControl):
     def specifyDatabase(self):
         self.databaseName = TransactionType
         self.primaryKey = TransactionType.type_id
+        self.baseSchema = TransactionTypeSchema
 
     def applyUserLevelFilters(self, user):
         return True

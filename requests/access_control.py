@@ -1,6 +1,7 @@
 class AccessControl():
     databaseName = None
     primaryKey = None
+    baseSchema = None
     schema = None
     userLevelFilters = True
 
