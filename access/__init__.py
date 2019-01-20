@@ -5,7 +5,7 @@ class AccessControl():
     databasePrimaryKey = None
     schemaBase = None
 
-    def __init__(self, user):
+    def __init__(self):
         self.specifyDatabase()
 
     def specifyDatabse(self):

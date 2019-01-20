@@ -1,4 +1,4 @@
-from flask_restplus import Namespace, Resource, fields
+from flask_restplus import Namespace, Resource
 
 from .utility import authenticate, queryDocumentation
 
@@ -7,13 +7,13 @@ from sql.invoice import Invoice, InvoiceItem
 
 from schemas.invoice import InvoiceSchema, InvoiceItemSchema
 
-from requests.query_parser import queryParser
-from requests.request import DatabaseRequest
-from requests.invoice_access import InvoiceAccess, InvoiceItemAccess, InvoiceEmbeddable
+from apis.query_parser import queryParser
+from apis.template import EndpointConfiguration
+from access.invoice_access import InvoiceAccess, InvoiceEmbeddable
 
 api = Namespace('Invoice', description='Invoice related operations.')
-
-dbRequest = DatabaseRequest()
+"""
+dbRequest = EndpointConfiguration()
 
 invoiceSchema = InvoiceSchema()
 invoiceItemSchema = InvoiceItemSchema()
@@ -53,3 +53,4 @@ class InvoiceItems(Resource):
             return {'message': 'Id does not exist!'}, 404 
         res = invoiceItemSchema.dump(query.first())[0]
         return res, 200
+"""

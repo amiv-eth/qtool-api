@@ -1,24 +1,20 @@
 from flask_restplus import Namespace, Resource
 
-from .utility import authenticate
+from .utility import authenticate, queryDocumentation
 from .template import EndpointConfiguration
 
-from requests.request import DatabaseRequest
-from requests.utility_access import AccountAccess, CategoryAccess, CurrencyAccess, TypeAccess
-
-from schemas.transaction_utility import TransactionTypeSchema, TransactionCurrencySchema, TransactionCategorySchema, TransactionAccountSchema
+from access.utility_access import AccountAccess, CategoryAccess, CurrencyAccess, TypeAccess
 
 
 api = Namespace('Transaction Utility', path='/utility', description='Operations to alter transaction utility ressources.')
 
-dbRequest = DatabaseRequest()
 
-
-accountConfiguration = EndpointConfiguration(api, 'account', AccountAccess, TransactionAccountSchema, None)
+accountConfiguration = EndpointConfiguration(api, 'account', AccountAccess(), None)
 
 @api.route('/'+accountConfiguration.path)
 @api.doc(security = 'amivapitoken')
 class AccountEndpoint(Resource):
+    @api.doc(params=queryDocumentation)
     @authenticate()
     def get(self,user):
         return accountConfiguration.getRequest(user)
@@ -41,11 +37,12 @@ class AccountEndpointById(Resource):
         return accountConfiguration.patchRequestById(user,id)
 
 
-categoryConfiguration = EndpointConfiguration(api, 'category', CategoryAccess, TransactionCategorySchema, None)
+categoryConfiguration = EndpointConfiguration(api, 'category', CategoryAccess(), None)
 
 @api.route('/'+categoryConfiguration.path)
 @api.doc(security = 'amivapitoken')
 class CategoryEndpoint(Resource):
+    @api.doc(params=queryDocumentation)
     @authenticate()
     def get(self,user):
         return categoryConfiguration.getRequest(user)
@@ -68,11 +65,12 @@ class CategoryEndpointById(Resource):
         return categoryConfiguration.patchRequestById(user,id)
 
 
-currencyConfiguration = EndpointConfiguration(api, 'currency', CurrencyAccess, TransactionCurrencySchema, None)
+currencyConfiguration = EndpointConfiguration(api, 'currency', CurrencyAccess(), None)
 
 @api.route('/'+currencyConfiguration.path)
 @api.doc(security = 'amivapitoken')
 class CurrencyEndpoint(Resource):
+    @api.doc(params=queryDocumentation)
     @authenticate()
     def get(self,user):
         return currencyConfiguration.getRequest(user)
@@ -95,11 +93,12 @@ class CurrencyEndpointById(Resource):
         return currencyConfiguration.patchRequestById(user,id)
 
 
-typeConfiguration = EndpointConfiguration(api, 'type', TypeAccess, TransactionTypeSchema, None)
+typeConfiguration = EndpointConfiguration(api, 'type', TypeAccess(), None)
 
 @api.route('/'+typeConfiguration.path)
 @api.doc(security = 'amivapitoken')
 class TypeEndpoint(Resource):
+    @api.doc(params=queryDocumentation)
     @authenticate()
     def get(self,user):
         return typeConfiguration.getRequest(user)

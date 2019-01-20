@@ -11,16 +11,16 @@ from sqlalchemy import or_
 
 from schemas.budget import BudgetConfirmedSchema, BudgetItemSchema
 
-from requests.budget_access import BudgetConfirmedAccess, BudgetItemAccess
-from requests.request import DatabaseRequest
+from access.budget_access import BudgetConfirmedAccess, BudgetItemAccess
+from apis.template import EndpointConfiguration
 
 
 api = Namespace('Budget', description='Budget related operations.')
 
 budgetItemSchema = BudgetItemSchema()
 budgetConfirmedSchema = BudgetConfirmedSchema()
-
-dbRequest = DatabaseRequest()
+"""
+dbRequest = EndpointConfiguration()
 
 
 path = 'items'
@@ -109,3 +109,4 @@ def calculateBudget():
         response.append(budgetItemCalculated)
     return response
 
+"""

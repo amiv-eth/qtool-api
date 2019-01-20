@@ -6,7 +6,14 @@ from sqlalchemy import desc, or_, and_
 
 from ast import literal_eval
 
-from schemas.query import QuerySchema
+from marshmallow import Schema, fields
+
+class QuerySchema(Schema):
+    where = fields.Str()
+    sort = fields.Str()
+    page = fields.Int()
+    embedded = fields.Str()
+    
 
 def queryParser(dbClass = None, embeddingSchema = None):
     arguments = request.args.to_dict()
@@ -102,6 +109,8 @@ def sortingParser(sortingKey,dbClass):
         abort(400, 'Invalid sorting parameter. The following syntax is expected: parameter.asc or parameter.desc.')
 
 def embeddingParser(embeddingDict,embeddingSchema):
+    if not embeddingSchema:
+        return {}
     schema = embeddingSchema()
     embedding = schema.load(embeddingDict)[0]
     return embedding

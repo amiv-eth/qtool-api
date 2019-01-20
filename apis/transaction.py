@@ -7,13 +7,13 @@ from sql.transactions import Transaction, DetailReceipt
 
 from schemas.transaction import TransactionSchema, ReceiptSchema
 
-from requests.request import DatabaseRequest
-from requests.transaction_access import TransactionAccess, ReceiptAccess, TransactionEmbeddable, ReceiptEmbeddable
-from requests.query_parser import queryParser
+from apis.template import EndpointConfiguration
+from access.transaction_access import TransactionAccess, ReceiptAccess, TransactionEmbeddable, ReceiptEmbeddable
+from apis.query_parser import queryParser
 
 
 api = Namespace('Transaction', description='Transaction related operations.')
-
+"""
 transactionSchema = TransactionSchema()
 transactionSchemaUser = TransactionSchema(exclude = ('account_id',))
 
@@ -23,7 +23,7 @@ receiptSchema = ReceiptSchema()
 
 transaction_model = api.model('Transaction', schemaToDict(TransactionSchema))
 
-transactionRequest = DatabaseRequest()
+transactionRequest = EndpointConfiguration()
 transactionRequest.databaseName = Transaction
 transactionRequest.primaryKey = Transaction.id
 
@@ -80,10 +80,11 @@ class Receipts(Resource):
         args = queryParser(DetailReceipt, ReceiptEmbeddable)
         res = transactionRequest.getSerializedResponse(user, ReceiptAccess, **args)
         return res, 200
-        """
-        transactionAccessData = TransactionAccess(user)
-        receiptAccessData = ReceiptAccess(user)
-        budgetItemAccess = BudgetItemAccess(user)
-        res = transactionRequest.embedElement(transactionAccessData,{'receipt_data':receiptAccessData, 'budget_item':budgetItemAccess})
-        return res
-        """
+"""
+"""
+transactionAccessData = TransactionAccess(user)
+receiptAccessData = ReceiptAccess(user)
+budgetItemAccess = BudgetItemAccess(user)
+res = transactionRequest.embedElement(transactionAccessData,{'receipt_data':receiptAccessData, 'budget_item':budgetItemAccess})
+return res
+"""

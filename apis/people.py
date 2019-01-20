@@ -4,15 +4,15 @@ from .utility import authenticate, schemaToDict, queryDocumentation
 
 from sql import db
 
-from requests.request import DatabaseRequest
-from requests.people_access import UserAccess, CustomerAccess
+from apis.template import EndpointConfiguration
+from access.people_access import UserAccess, CustomerAccess
 
 from schemas.people import UserSchema, CustomerSchema
 
 
 api = Namespace('People', description='People related operations.')
-
-dbRequest = DatabaseRequest()
+"""
+dbRequest = EndpointConfiguration()
 
 path = 'user'
 schema = UserSchema()
@@ -95,7 +95,7 @@ class CustomerById(Resource):
         accessData = access(user)
         newData = schema.load(api.payload)[0]
         return dbRequest.patchElement(id,accessData,newData)
-
+"""
 """
     @api.doc(security = 'amivapitoken')
     @authenticate(requiredUserLevelBit = [9])
