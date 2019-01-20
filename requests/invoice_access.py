@@ -1,4 +1,4 @@
-from .access_control import AccessControl
+from requests import AccessControl, EmbeddingSchema
 from marshmallow import fields
 
 # Databases
@@ -8,7 +8,6 @@ from sql.invoice import Invoice, InvoiceItem
 from schemas.invoice import InvoiceSchema, InvoiceItemSchema
 
 # Embedding
-from requests import EmbeddingSchema
 from requests.people_access import UserAccess, CustomerAccess
 
 

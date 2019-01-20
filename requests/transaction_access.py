@@ -1,4 +1,4 @@
-from .access_control import AccessControl
+from requests import AccessControl, EmbeddingSchema
 from sqlalchemy import or_
 from marshmallow import fields
 
@@ -9,7 +9,6 @@ from sql.transactions import Transaction, DetailReceipt
 from schemas.transaction import TransactionSchema, ReceiptSchema
 
 # Embedding
-from requests import EmbeddingSchema
 from requests.utility_access import AccountAccess, CategoryAccess, CurrencyAccess, TypeAccess
 from requests.budget_access import BudgetItemAccess
 from requests.people_access import UserAccess

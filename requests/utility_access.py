@@ -1,4 +1,4 @@
-from .access_control import AccessControl
+from requests import AccessControl
 
 # Databases
 from sql.transaction_util import TransactionAccount, TransactionCategory, TransactionCurrency, TransactionType
