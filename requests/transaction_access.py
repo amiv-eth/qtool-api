@@ -1,12 +1,14 @@
-from schemas.transaction import TransactionSchema, ReceiptSchema
-from sql.transactions import Transaction, DetailReceipt
-
 from .access_control import AccessControl
-
 from sqlalchemy import or_
-
 from marshmallow import fields
 
+# Databases
+from sql.transactions import Transaction, DetailReceipt
+
+# Schemas
+from schemas.transaction import TransactionSchema, ReceiptSchema
+
+# Embedding
 from requests import EmbeddingSchema
 from requests.utility_access import AccountAccess, CategoryAccess, CurrencyAccess, TypeAccess
 from requests.budget_access import BudgetItemAccess
@@ -16,9 +18,10 @@ from requests.people_access import UserAccess
 class TransactionAccess(AccessControl):
     def specifyDatabase(self):
         self.databaseName = Transaction
-        self.primaryKey = Transaction.id
+        self.databasePrimaryKey = Transaction.id
+        self.schemaBase = TransactionSchema
 
-    def applyUserLevelFilters(self, user):
+    def getUserLevelFilters(self, user):
         privileges = user.user_privileges
         if (privileges>>8)&1 or (privileges>>9)&1:
             return True
@@ -29,7 +32,7 @@ class TransactionAccess(AccessControl):
             return filterExpression
         return (Transaction.user_id == user.user_id)
 
-    def selectUserLevelSchema(self, user):
+    def getUserLevelSchema(self, user):
         transactionSchema = TransactionSchema()
         transactionSchemaUser = TransactionSchema(exclude = ('account_id',))
         privileges = user.user_privileges
@@ -42,12 +45,13 @@ class TransactionAccess(AccessControl):
 class ReceiptAccess(AccessControl):
     def specifyDatabase(self):
         self.databaseName = DetailReceipt
-        self.primaryKey = DetailReceipt.transaction_id
+        self.databasePrimaryKey = DetailReceipt.transaction_id
+        self.schemaBase = ReceiptSchema
 
-    def applyUserLevelFilters(self,user):
+    def getUserLevelFilters(self,user):
         return True
 
-    def selectUserLevelSchema(self, user):
+    def getUserLevelSchema(self, user):
         receiptSchema = ReceiptSchema()
         receiptSchemaUser = ReceiptSchema(exclude = ('ezag_id','bankstatement_period',))
         privileges = user.user_privileges

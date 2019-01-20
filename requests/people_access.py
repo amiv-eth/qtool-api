@@ -1,26 +1,30 @@
-from schemas.people import UserSchema, CustomerSchema
+from .access_control import AccessControl
+
+# Databases
 from sql.people import User, Customer
 
-from .access_control import AccessControl
+# Schemas
+from schemas.people import UserSchema, CustomerSchema
 
 class UserAccess(AccessControl):
     def specifyDatabase(self):
         self.databaseName = User
-        self.primaryKey = User.user_id
-
-    def applyUserLevelFilters(self, user):
+        self.databasePrimaryKey = User.user_id
+        self.schemaBase = UserSchema
+    def getUserLevelFilters(self, user):
         return True
 
-    def selectUserLevelSchema(self, user):
+    def getUserLevelSchema(self, user):
         return UserSchema(exclude = ('password', 'salt',))
 
 class CustomerAccess(AccessControl):
     def specifyDatabase(self):
         self.databaseName = Customer
-        self.primaryKey = Customer.customer_id
-
-    def applyUserLevelFilters(self, user):
+        self.databasePrimaryKey = Customer.customer_id
+        self.schemaBase = CustomerSchema
+        
+    def getUserLevelFilters(self, user):
         return True
 
-    def selectUserLevelSchema(self,user):
+    def getUserLevelSchema(self,user):
         return CustomerSchema()

@@ -1,54 +1,56 @@
 from .access_control import AccessControl
 
+# Databases
 from sql.transaction_util import TransactionAccount, TransactionCategory, TransactionCurrency, TransactionType
 
+# Schemas
 from schemas.transaction_utility import TransactionAccountSchema, TransactionCategorySchema, TransactionCurrencySchema, TransactionTypeSchema
 
 
 class AccountAccess(AccessControl):
     def specifyDatabase(self):
         self.databaseName = TransactionAccount
-        self.primaryKey = TransactionAccount.account
-        self.baseSchema = TransactionAccountSchema
+        self.databasePrimaryKey = TransactionAccount.account
+        self.schemaBase = TransactionAccountSchema
 
-    def applyUserLevelFilters(self,user):
+    def getUserLevelFilters(self,user):
         return True
 
-    def selectUserLevelSchema(self, user):
+    def getUserLevelSchema(self, user):
         return TransactionAccountSchema()
 
 class CategoryAccess(AccessControl):
     def specifyDatabase(self):
         self.databaseName = TransactionCategory
-        self.primaryKey = TransactionCategory.category
-        self.baseSchema = TransactionCategorySchema
-
-    def applyUserLevelFilters(self, user):
+        self.databasePrimaryKey = TransactionCategory.category
+        self.schemaBase = TransactionCategorySchema
+        
+    def getUserLevelFilters(self, user):
         return True
 
-    def selectUserLevelSchema(self, user):
+    def getUserLevelSchema(self, user):
         return TransactionCategorySchema()
 
 class CurrencyAccess(AccessControl):
     def specifyDatabase(self):
         self.databaseName = TransactionCurrency
-        self.primaryKey = TransactionCurrency.currency_id
-        self.baseSchema = TransactionCurrencySchema
-
-    def applyUserLevelFilters(self, user):
+        self.databasePrimaryKey = TransactionCurrency.currency_id
+        self.schemaBase = TransactionCurrencySchema
+        
+    def getUserLevelFilters(self, user):
         return True
 
-    def selectUserLevelSchema(self, user):
+    def getUserLevelSchema(self, user):
         return TransactionCurrencySchema()
 
 class TypeAccess(AccessControl):
     def specifyDatabase(self):
         self.databaseName = TransactionType
-        self.primaryKey = TransactionType.type_id
-        self.baseSchema = TransactionTypeSchema
+        self.databasePrimaryKey = TransactionType.type_id
+        self.schemaBase = TransactionTypeSchema
 
-    def applyUserLevelFilters(self, user):
+    def getUserLevelFilters(self, user):
         return True
 
-    def selectUserLevelSchema(self, user):
+    def getUserLevelSchema(self, user):
         return TransactionTypeSchema()
