@@ -105,12 +105,13 @@ def sortingParser(sortingKey,dbClass):
             return sortingParameter
         elif ordering == 'desc':
             return desc(sortingParameter)
+        else:
+            abort(400, 'Invalid sorting parameter. The following syntax is expected: parameter.asc or parameter.desc.')
     except:
         abort(400, 'Invalid sorting parameter. The following syntax is expected: parameter.asc or parameter.desc.')
 
 def embeddingParser(embeddingDict,embeddingSchema):
     if not embeddingSchema:
         return {}
-    schema = embeddingSchema()
-    embedding = schema.load(embeddingDict)[0]
+    embedding = embeddingSchema.load(embeddingDict)[0]
     return embedding

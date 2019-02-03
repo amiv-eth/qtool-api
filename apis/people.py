@@ -1,107 +1,75 @@
 from flask_restplus import Namespace, Resource
 
-from .utility import authenticate, schemaToDict, queryDocumentation
+from .utility import authenticate, queryDocumentation
 
 from sql import db
 
 from apis.template import EndpointConfiguration
 from access.people_access import UserAccess, CustomerAccess
 
-from schemas.people import UserSchema, CustomerSchema
 
 
 api = Namespace('People', description='People related operations.')
-"""
-dbRequest = EndpointConfiguration()
 
-path = 'user'
-schema = UserSchema()
-model = api.model(path.title(), schemaToDict(schema))
-access = UserAccess
+userConfiguration = EndpointConfiguration(api, 'user', UserAccess(), None)
 
-@api.route('/'+path)
-class User(Resource):
-    @api.doc(params=queryDocumentation, security='amivapitoken')
+@api.route('/'+userConfiguration.path)
+@api.doc(security = 'amivapitoken')
+class UserEndpoint(Resource):
+    @api.doc(params=queryDocumentation)
     @authenticate()
     def get(self,user):
-        access = UserAccess
-        res = dbRequest.getSerializedResponse(user,access)
-        return res, 200
-
-    @api.doc(security='amivapitoken')
-    @api.expect(model)
+        return userConfiguration.getRequest(user)
+        
+    @api.expect(userConfiguration.model)
     @authenticate(requiredUserLevelBit = [9])
     def post(self, user):
-        schema.load_commit(api.payload)
-        return {'result': path.title() + ' added.'}, 201
+        return userConfiguration.postRequest(user)
 
-@api.route('/'+path+'/<string:id>')
-class UserById(Resource):
-    @api.doc(security='amivapitoken')
+@api.route('/'+userConfiguration.path+'/<string:id>')
+@api.doc(security = 'amivapitoken')
+class UserEndpointById(Resource):
     @authenticate()
     def get(self,id,user):
-        accessData = access(user)
-        return dbRequest.getSerializedElementById(id,accessData)
+        return userConfiguration.getRequestById(user,id)
 
-    @api.expect(model)
-    @api.doc(security='amivapitoken')
+    @api.expect(userConfiguration.model)
     @authenticate(requiredUserLevelBit = [9])
     def patch(self,id,user):
-        accessData = access(user)
-        newData = schema.load(api.payload)[0]
-        return dbRequest.patchElement(id,accessData,newData)
+        return userConfiguration.patchRequestById(user,id)
 
-    @api.doc(security = 'amivapitoken')
     @authenticate(requiredUserLevelBit = [9])
     def delete(self,id,user):
-        accessData = access(user)
-        dbRequest.getElementById(id, accessData).user_privileges = 0
+        userConfiguration.getElementById(id, user).user_privileges = 0
         db.session.commit()
         return {"message": "Operation successful."}, 202
 
 
-path = 'customer'
-schema = CustomerSchema()
-model = api.model(path.title(), schemaToDict(schema))
-access = CustomerAccess
+customerConfiguration = EndpointConfiguration(api, 'customer', CustomerAccess(), None)
 
-@api.route('/'+path)
-class Customer(Resource):
-    @api.doc(security='amivapitoken')
+@api.route('/'+customerConfiguration.path)
+@api.doc(security = 'amivapitoken')
+class CustomerEndpoint(Resource):
+    @api.doc(params=queryDocumentation)
     @authenticate(requiredUserLevelBit = [7,9])
     def get(self,user):
-        res = dbRequest.getSerializedResponse(user, access)
-        return res, 200
-
-    @api.doc(security='amivapitoken')
-    @api.expect(model)
+        return customerConfiguration.getRequest(user)
+        
+    # ToDo: Email is not correctly converted to model!
+    @api.expect(customerConfiguration.model)
     @authenticate(requiredUserLevelBit = [7,9])
     def post(self, user):
-        schema.load_commit(api.payload)
-        return {'result': path.title() + ' added.'}, 201
+        return customerConfiguration.postRequest(user)
 
-@api.route('/'+path+'/<string:id>')
-class CustomerById(Resource):
-    @api.doc(security='amivapitoken')
+@api.route('/'+customerConfiguration.path+'/<string:id>')
+@api.doc(security = 'amivapitoken')
+class CustomerEndpointById(Resource):
     @authenticate(requiredUserLevelBit = [7,9])
     def get(self,id,user):
-        accessData = access(user)
-        return dbRequest.getSerializedElementById(id,accessData)
+        return customerConfiguration.getRequestById(user,id)
 
-    @api.expect(model)
-    @api.doc(security='amivapitoken')
+    @api.expect(customerConfiguration.model)
     @authenticate(requiredUserLevelBit = [7,9])
     def patch(self,id,user):
-        accessData = access(user)
-        newData = schema.load(api.payload)[0]
-        return dbRequest.patchElement(id,accessData,newData)
-"""
-"""
-    @api.doc(security = 'amivapitoken')
-    @authenticate(requiredUserLevelBit = [9])
-    def delete(self,id,user):
-        accessData = access(user)
-        dbRequest.getElementById(id, accessData).user_privileges = 0
-        db.session.commit()
-        return {"message": "Operation successful."}, 202
-"""
+        return customerConfiguration.patchRequestById(user,id)
+

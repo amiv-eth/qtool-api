@@ -39,8 +39,10 @@ class InvoiceItemAccess(AccessControl):
 class InvoiceEmbeddable(EmbeddingSchema):
     user = fields.Bool()
     customer = fields.Bool()
+    item = fields.Bool()
 
     accessData = {
         'user': UserAccess,
-        'customer': CustomerAccess
+        'customer': CustomerAccess,
+        'item': InvoiceItemAccess
     }

@@ -46,11 +46,16 @@ class EndpointConfiguration():
         return {'result': self.path.title() + ' added.'}, 201
 
     def getRequestById(self,user,id):
-        return self.getSerializedElementById(user,id)
+        element = self.getElementById(id,user)
+        return self.access.getUserLevelSchema(user).dump(element)[0]
 
     def patchRequestById(self,user,id):
         newData = self.baseSchema.load(self.api.payload)[0]
-        return self.patchElement(id,user,newData)
+        element = self.getElementById(id, user)
+        for key in newData:
+            setattr(element, key, newData[key])
+        db.session.commit()
+        return {'message': 'Operation successful.'}, 202
 
     def getSerializedResponse(self, user, page = 1, sort = None, embedded = {}, perPage = 25, where = True):
         primaryDatabaseAccess = self.access
@@ -94,18 +99,6 @@ class EndpointConfiguration():
         response = {'items': items}
         response['meta'] = {'page': page, 'results_on_this_page': resultsOnPage, 'max_results_per_page': perPage, 'total_results': totalResults}
         return response
-
-
-    def getSerializedElementById(self, user, id):
-        element = self.getElementById(id,user)
-        return self.access.getUserLevelSchema(user).dump(element)[0]
-
-    def patchElement(self, id , user, newData):
-        element = self.getElementById(id, user)
-        for key in newData:
-            setattr(element, key, newData[key])
-        db.session.commit()
-        return {'message': 'Operation successful.'}, 202
 
     def getElementById(self, id, user):
         query = db.session.query(self.access.databaseName).filter(self.access.databasePrimaryKey == id)

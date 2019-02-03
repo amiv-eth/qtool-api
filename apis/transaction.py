@@ -1,90 +1,54 @@
 from flask_restplus import Namespace, Resource
 
-from .utility import authenticate, schemaToDict, queryDocumentation
+from .utility import authenticate, queryDocumentation
 
 from sql import db
-from sql.transactions import Transaction, DetailReceipt
-
-from schemas.transaction import TransactionSchema, ReceiptSchema
 
 from apis.template import EndpointConfiguration
+
 from access.transaction_access import TransactionAccess, ReceiptAccess, TransactionEmbeddable, ReceiptEmbeddable
-from apis.query_parser import queryParser
 
 
 api = Namespace('Transaction', description='Transaction related operations.')
-"""
-transactionSchema = TransactionSchema()
-transactionSchemaUser = TransactionSchema(exclude = ('account_id',))
 
+transactionConfiguration = EndpointConfiguration(api, 'transaction', TransactionAccess(), TransactionEmbeddable())
 
-receiptSchema = ReceiptSchema()
-
-
-transaction_model = api.model('Transaction', schemaToDict(TransactionSchema))
-
-transactionRequest = EndpointConfiguration()
-transactionRequest.databaseName = Transaction
-transactionRequest.primaryKey = Transaction.id
-
-
-
-@api.route('/')
-class Transactions(Resource):
-    @api.doc(params=queryDocumentation, security='amivapitoken')
-    @api.response(401, 'Unauthorized')
+@api.route('/'+transactionConfiguration.path)
+@api.doc(security = 'amivapitoken')
+class TransactionEndpoint(Resource):
+    @api.doc(params=queryDocumentation)
     @authenticate()
     def get(self,user):
-        args = queryParser(Transaction, TransactionEmbeddable)
-        res = transactionRequest.getSerializedResponse(user, TransactionAccess, **args)
-        return res, 200
-
-    @api.doc(security='amivapitoken')
-    @api.expect(transaction_model)
+        return transactionConfiguration.getRequest(user)
+        
+    @api.expect(transactionConfiguration.model)
     @authenticate(requiredUserLevelBit = [9])
-    def post(self,user):
-        transactionSchema.load_commit(api.payload)
-        return {'result': 'Transaction added.'}, 201
+    def post(self, user):
+        return transactionConfiguration.postRequest(user)
 
-	
-@api.route('/<string:id>')
-class ReceiptById(Resource):
-    @api.doc(security = 'amivapitoken')
+@api.route('/'+transactionConfiguration.path+'/<string:id>')
+@api.doc(security = 'amivapitoken')
+class TransactionEndpointById(Resource):
     @authenticate()
-    def get(self, id, user):
-        transactionAccessData = TransactionAccess(user)
-        return transactionRequest.getSerializedElementById(id,transactionAccessData)
+    def get(self,id,user):
+        return transactionConfiguration.getRequestById(user,id)
 
-    @api.expect(transaction_model)
-    @api.doc(security = 'amivapitoken')
+    @api.expect(transactionConfiguration.model)
     @authenticate(requiredUserLevelBit = [9])
-    def patch(self, id, user):
-        transactionAccessData = TransactionAccess(user)
-        newData = transactionSchema.load(api.payload)[0]
-        return transactionRequest.patchElement(id, transactionAccessData, newData)
+    def patch(self,id,user):
+        return transactionConfiguration.patchRequestById(user,id)
 
-    @api.doc(security = 'amivapitoken')
     @authenticate(requiredUserLevelBit = [9])
     def delete(self,id,user):
-        transactionAccessData = TransactionAccess(user)
-        transactionRequest.getElementById(id, transactionAccessData).is_valid = False
+        transactionConfiguration.getElementById(id, user).is_valid = False
         db.session.commit()
         return {"message": "Operation successful."}, 202
 
+receiptConfiguration = EndpointConfiguration(api, 'receipt', ReceiptAccess(), ReceiptEmbeddable())
 
-@api.route('/receipt')
-class Receipts(Resource):
+@api.route('/'+receiptConfiguration.path)
+class ReceiptEndpoint(Resource):
     @api.doc(params=queryDocumentation, security = 'amivapitoken')
     @authenticate()
     def get(self,user):
-        args = queryParser(DetailReceipt, ReceiptEmbeddable)
-        res = transactionRequest.getSerializedResponse(user, ReceiptAccess, **args)
-        return res, 200
-"""
-"""
-transactionAccessData = TransactionAccess(user)
-receiptAccessData = ReceiptAccess(user)
-budgetItemAccess = BudgetItemAccess(user)
-res = transactionRequest.embedElement(transactionAccessData,{'receipt_data':receiptAccessData, 'budget_item':budgetItemAccess})
-return res
-"""
+        return receiptConfiguration.getRequest(user)

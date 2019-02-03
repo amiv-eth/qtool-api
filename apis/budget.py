@@ -1,15 +1,9 @@
 from flask_restplus import Namespace, Resource
 
-from sql.budget import BudgetItem
-
 from sql import db
-from sql.transactions import Transaction
 
-from .utility import authenticate, schemaToDict
+from .utility import authenticate, queryDocumentation
 
-from sqlalchemy import or_
-
-from schemas.budget import BudgetConfirmedSchema, BudgetItemSchema
 
 from access.budget_access import BudgetConfirmedAccess, BudgetItemAccess
 from apis.template import EndpointConfiguration
@@ -17,66 +11,54 @@ from apis.template import EndpointConfiguration
 
 api = Namespace('Budget', description='Budget related operations.')
 
-budgetItemSchema = BudgetItemSchema()
-budgetConfirmedSchema = BudgetConfirmedSchema()
-"""
-dbRequest = EndpointConfiguration()
+budgetItemConfiguration = EndpointConfiguration(api, 'item', BudgetItemAccess(), None)
 
 
-path = 'items'
-schema = BudgetItemSchema()
-model = api.model(path.title(), schemaToDict(schema))
-access = BudgetItemAccess
-
-@api.route('/'+path)
-class Item(Resource):
-    @api.doc(security='amivapitoken')
+@api.route('/'+budgetItemConfiguration.path)
+@api.doc(security = 'amivapitoken')
+class BudgetItemEndpoint(Resource):
+    @api.doc(params=queryDocumentation)
     @authenticate()
     def get(self,user):
-        res = dbRequest.getSerializedResponse(user,access)
-        return res, 200
-
-    @api.doc(security='amivapitoken')
-    @api.expect(model)
+        return budgetItemConfiguration.getRequest(user)
+        
+    @api.expect(budgetItemConfiguration.model)
     @authenticate(requiredUserLevelBit = [9])
     def post(self, user):
-        schema.load_commit(api.payload)
-        return {'result': path.title() + ' added.'}, 201
+        return budgetItemConfiguration.postRequest(user)
 
-@api.route('/'+path+'/<string:id>')
-class ItemById(Resource):
-    @api.doc(security='amivapitoken')
+@api.route('/'+budgetItemConfiguration.path+'/<string:id>')
+@api.doc(security = 'amivapitoken')
+class BudgetItemEndpointById(Resource):
     @authenticate()
     def get(self,id,user):
-        accessData = access(user)
-        return dbRequest.getSerializedElementById(id,accessData)
+        return budgetItemConfiguration.getRequestById(user,id)
 
-    @api.expect(model)
-    @api.doc(security='amivapitoken')
+    @api.expect(budgetItemConfiguration.model)
     @authenticate(requiredUserLevelBit = [9])
     def patch(self,id,user):
-        accessData = access(user)
-        newData = schema.load(api.payload)[0]
-        return dbRequest.patchElement(id,accessData,newData)
+        return budgetItemConfiguration.patchRequestById(user,id)
 
-    @api.doc(security = 'amivapitoken')
     @authenticate(requiredUserLevelBit = [9])
     def delete(self,id,user):
-        accessData = access(user)
-        dbRequest.getElementById(id, accessData).financial_year = 0
+        budgetItemConfiguration.getElementById(id, user).financial_year = -1
         db.session.commit()
         return {"message": "Operation successful."}, 202
 
+budgetItemConfConfiguration = EndpointConfiguration(api, 'confirmed', BudgetConfirmedAccess(), None)
 
-
-@api.route('/confirmed')
-class BudgetConf(Resource):
-    @api.doc(security='amivapitoken')
+@api.route('/'+budgetItemConfiguration.path)
+@api.doc(security='amivapitoken')
+class BudgetConfEndpoint(Resource):
+    @api.doc(params=queryDocumentation)
     @authenticate()
     def get(self,user):
-        res = dbRequest.getSerializedResponse(user,BudgetConfirmedAccess)
-        return res
+        return budgetItemConfConfiguration.getRequest(user)
+# Post and patch: link creation of entries to budgetitem
 
+
+# Add means to cache and query results
+"""
 @api.route('/calculated')
 class BudgetCalculated(Resource):
     def get(self):
@@ -84,8 +66,6 @@ class BudgetCalculated(Resource):
         values = calculateBudget()
         return values
 
-#ToDo: Add amount in CHF for reasonable numbers!
-#ToDo: Specify a financial_year
 def calculateBudget():
     query = db.session.query(BudgetItem.budgetitem_id)
     response = []
