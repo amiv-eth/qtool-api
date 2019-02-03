@@ -47,7 +47,7 @@ class BudgetItemEndpointById(Resource):
 
 budgetItemConfConfiguration = EndpointConfiguration(api, 'confirmed', BudgetConfirmedAccess(), None)
 
-@api.route('/'+budgetItemConfiguration.path)
+@api.route('/'+budgetItemConfConfiguration.path)
 @api.doc(security='amivapitoken')
 class BudgetConfEndpoint(Resource):
     @api.doc(params=queryDocumentation)
