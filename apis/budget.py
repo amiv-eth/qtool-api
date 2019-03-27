@@ -41,10 +41,14 @@ class BudgetItemEndpointById(Resource):
 
     @authenticate(requiredUserLevelBit = [9])
     def delete(self,id,user):
-        budgetItemConfiguration.getElementById(id, user).financial_year = -1
+        budgetItemConfiguration.getElementById(id, user).budgetitem_code = "0"
         db.session.commit()
         return {"message": "Operation successful."}, 202
 
+# ToDo: 
+# - Automatically generate conf fields for every budgeted item. 
+# - Remove financial year since this is redundant with the budget item.
+# - Deletion is only possible via budget item
 budgetItemConfConfiguration = EndpointConfiguration(api, 'confirmed', BudgetConfirmedAccess(), None)
 
 @api.route('/'+budgetItemConfConfiguration.path)
@@ -54,6 +58,19 @@ class BudgetConfEndpoint(Resource):
     @authenticate()
     def get(self,user):
         return budgetItemConfConfiguration.getRequest(user)
+
+@api.route('/'+budgetItemConfConfiguration.path+'/<string:id>')
+@api.doc(security = 'amivapitoken')
+class BudgetConfEndpointById(Resource):
+    @authenticate()
+    def get(self,id,user):
+        return budgetItemConfConfiguration.getRequestById(user,id)
+
+    @api.expect(budgetItemConfConfiguration.model)
+    @authenticate(requiredUserLevelBit = [9])
+    def patch(self,id,user):
+        return budgetItemConfConfiguration.patchRequestById(user,id)
+
 # Post and patch: link creation of entries to budgetitem
 
 

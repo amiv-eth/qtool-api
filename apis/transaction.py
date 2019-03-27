@@ -44,6 +44,8 @@ class TransactionEndpointById(Resource):
         db.session.commit()
         return {"message": "Operation successful."}, 202
 
+# ToDo:
+# - Automatically generate receipt entry for every expenditure transaction
 receiptConfiguration = EndpointConfiguration(api, 'receipt', ReceiptAccess(), ReceiptEmbeddable())
 
 @api.route('/'+receiptConfiguration.path)
@@ -52,3 +54,15 @@ class ReceiptEndpoint(Resource):
     @authenticate()
     def get(self,user):
         return receiptConfiguration.getRequest(user)
+
+@api.route('/'+receiptConfiguration.path+'/<string:id>')
+@api.doc(security = 'amivapitoken')
+class ReceiptEndpointById(Resource):
+    @authenticate()
+    def get(self,id,user):
+        return receiptConfiguration.getRequestById(user,id)
+
+    @api.expect(receiptConfiguration.model)
+    @authenticate(requiredUserLevelBit = [9])
+    def patch(self,id,user):
+        return receiptConfiguration.patchRequestById(user,id)
