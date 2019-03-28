@@ -10,15 +10,12 @@ class BudgetItemSchema(Schema):
     financial_year = fields.Int()
     expenditure_budgeted = fields.Float()
     revenue_budgeted = fields.Float()
+    expenditure_confirmed = fields.Float()
+    revenue_confirmed = fields.Float()
 
     def load_commit(self, data):
         desirialized = self.load(data)[0]
         element = BudgetItem(**desirialized)
         db.session.add(element)
         db.session.commit()
-
-class BudgetConfirmedSchema(Schema):
-    budgetitem_id = fields.Int(dump_only = True)
-    financial_year = fields.Int()
-    expenditure_effective = fields.Float()
-    revenue_effective = fields.Float()
+        return element

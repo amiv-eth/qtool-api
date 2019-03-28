@@ -2,10 +2,12 @@ from flask_restplus import Namespace, Resource
 
 from sql import db
 
+from sqlalchemy import or_
+
 from .utility import authenticate, queryDocumentation
 
-
-from access.budget_access import BudgetConfirmedAccess, BudgetItemAccess
+from access.budget_access import BudgetItemAccess
+from access.transaction_access import TransactionAccess
 from apis.template import EndpointConfiguration
 
 
@@ -20,7 +22,9 @@ class BudgetItemEndpoint(Resource):
     @api.doc(params=queryDocumentation)
     @authenticate()
     def get(self,user):
-        return budgetItemConfiguration.getRequest(user)
+        [response, code] = budgetItemConfiguration.getRequest(user)
+        calculateBudget(response['items'])
+        return response, code
         
     @api.expect(budgetItemConfiguration.model)
     @authenticate(requiredUserLevelBit = [9])
@@ -32,7 +36,9 @@ class BudgetItemEndpoint(Resource):
 class BudgetItemEndpointById(Resource):
     @authenticate()
     def get(self,id,user):
-        return budgetItemConfiguration.getRequestById(user,id)
+        response = budgetItemConfiguration.getRequestById(user,id)
+        calculateBudget([response])
+        return response
 
     @api.expect(budgetItemConfiguration.model)
     @authenticate(requiredUserLevelBit = [9])
@@ -45,65 +51,28 @@ class BudgetItemEndpointById(Resource):
         db.session.commit()
         return {"message": "Operation successful."}, 202
 
-# ToDo: 
-# - Automatically generate conf fields for every budgeted item. 
-# - Remove financial year since this is redundant with the budget item.
-# - Deletion is only possible via budget item
-budgetItemConfConfiguration = EndpointConfiguration(api, 'confirmed', BudgetConfirmedAccess(), None)
 
-@api.route('/'+budgetItemConfConfiguration.path)
-@api.doc(security='amivapitoken')
-class BudgetConfEndpoint(Resource):
-    @api.doc(params=queryDocumentation)
-    @authenticate()
-    def get(self,user):
-        return budgetItemConfConfiguration.getRequest(user)
+# ToDo: Add means to query by calculated results!
+# ToDo: Cache results!
 
-@api.route('/'+budgetItemConfConfiguration.path+'/<string:id>')
-@api.doc(security = 'amivapitoken')
-class BudgetConfEndpointById(Resource):
-    @authenticate()
-    def get(self,id,user):
-        return budgetItemConfConfiguration.getRequestById(user,id)
-
-    @api.expect(budgetItemConfConfiguration.model)
-    @authenticate(requiredUserLevelBit = [9])
-    def patch(self,id,user):
-        return budgetItemConfConfiguration.patchRequestById(user,id)
-
-# Post and patch: link creation of entries to budgetitem
-
-
-# Add means to cache and query results
-"""
-@api.route('/calculated')
-class BudgetCalculated(Resource):
-    def get(self):
-        #ToDo: Cache result
-        values = calculateBudget()
-        return values
-
-def calculateBudget():
-    query = db.session.query(BudgetItem.budgetitem_id)
-    response = []
-    for result in query:
-        budgetitem_id = result[0]
-        budgetItemCalculated = {'budgetitem_id' : budgetitem_id}
+def calculateBudget(serializedResponseList):
+    Transaction = TransactionAccess().databaseName
+    for serializedBudgetItem in serializedResponseList:
+        budgetitem_id = serializedBudgetItem['budgetitem_id']
         
-        transactions = db.session.query(Transaction.amount).filter(Transaction.budgetitem_id == budgetitem_id).filter(Transaction.currency_id == 1)
+        transactions = db.session.query(Transaction.amount_in_chf).filter(Transaction.budgetitem_id == budgetitem_id)
         revenueTransactions = transactions.filter(or_(Transaction.type_id.startswith('1'),Transaction.type_id.startswith('3')))
         expenditureTransactions = transactions.filter(or_(Transaction.type_id.startswith('2'),Transaction.type_id.startswith('4')))
         
         revSum = 0
         for revTransaction in revenueTransactions:
-            revSum = revSum + float(revTransaction[0])
-        budgetItemCalculated['revenue_calculated'] = revSum
+            if revTransaction[0]:
+                revSum = revSum + float(revTransaction[0])
+        serializedBudgetItem['revenue_calculated'] = revSum
 
         expSum = 0
         for expTransaction in expenditureTransactions:
-            expSum = expSum + float(revTransaction[0])
-        budgetItemCalculated['expenditure_calculated'] = expSum
-        response.append(budgetItemCalculated)
-    return response
+            if expTransaction[0]:
+                expSum = expSum + float(expTransaction[0])
+        serializedBudgetItem['expenditure_calculated'] = expSum
 
-"""

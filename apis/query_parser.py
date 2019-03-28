@@ -77,6 +77,8 @@ def filterParser(whereStatement,dbClass):
     return filterCondition
 
 def createFilterCondition(condition, val, dbClass):
+    if not ('.' in condition):
+        abort(400, 'Invalid syntax for query parameter where, operator missing!')
     [attr, op] = condition.split('.')
     # ToDo: schema load for input validation
     if op == "eq":
