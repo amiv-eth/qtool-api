@@ -26,17 +26,11 @@ class TransactionSchema(Schema):
 	    db.session.add(element)
 	    db.session.commit()
 
-
-class TransactionQuery(TransactionSchema):
-	id = fields.Int(dump_only=False)
-	pass
-
 class ReceiptSchema(Schema):
 	transaction_id = fields.Int(dump_only=True)
 	receipt_received = fields.Bool()
 	ezag_id = fields.Str()
 	bankstatement_period = fields.Str()
-
 
 class MerchSchema(Schema):
 	transaction_id = fields.Int(dump_only=True)

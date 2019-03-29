@@ -9,6 +9,7 @@ from schemas.invoice import InvoiceSchema, InvoiceItemSchema
 
 # Embedding
 from access.people_access import UserAccess, CustomerAccess
+from access.products_access import InvoiceArticleAccess
 
 
 class InvoiceAccess(AccessControl):
@@ -45,4 +46,11 @@ class InvoiceEmbeddable(EmbeddingSchema):
         'user': UserAccess,
         'customer': CustomerAccess,
         'item': InvoiceItemAccess
+    }
+
+class InvoiceItemEmbeddable(EmbeddingSchema):
+    article = fields.Bool()
+
+    accessData = {
+        'article': InvoiceArticleAccess
     }

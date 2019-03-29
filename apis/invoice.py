@@ -4,10 +4,8 @@ from .utility import authenticate, queryDocumentation
 
 from .template import EndpointConfiguration
 
-from sql.products import InvoiceArticle
 
-
-from access.invoice_access import InvoiceAccess, InvoiceEmbeddable, InvoiceItemAccess
+from access.invoice_access import InvoiceAccess, InvoiceEmbeddable, InvoiceItemAccess, InvoiceItemEmbeddable
 
 api = Namespace('Invoice', description='Invoice related operations.')
 
@@ -22,7 +20,7 @@ class InvoiceEndpoint(Resource):
         return invoiceConfiguration.getRequest(user)
 
 
-invoiceItemConfiguration = EndpointConfiguration(api, 'invoiceItem', InvoiceItemAccess(), None)
+invoiceItemConfiguration = EndpointConfiguration(api, 'invoiceItem', InvoiceItemAccess(), InvoiceItemEmbeddable())
 
 @api.route('/'+invoiceItemConfiguration.path)
 @api.doc(security = 'amivapitoken')
