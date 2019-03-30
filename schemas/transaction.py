@@ -31,6 +31,8 @@ class ReceiptSchema(Schema):
 	receipt_received = fields.Bool()
 	ezag_id = fields.Str()
 	bankstatement_period = fields.Str()
+	custom_iban = fields.Str()
+	custom_recipient = fields.Str()
 
 class MerchSchema(Schema):
 	transaction_id = fields.Int(dump_only=True)

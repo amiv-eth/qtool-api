@@ -4,7 +4,6 @@ from .utility import authenticate, queryDocumentation
 
 from .template import EndpointConfiguration
 
-
 from access.invoice_access import InvoiceAccess, InvoiceEmbeddable, InvoiceItemAccess, InvoiceItemEmbeddable
 
 api = Namespace('Invoice', description='Invoice related operations.')

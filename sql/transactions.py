@@ -25,6 +25,8 @@ class DetailReceipt(db.Model):
 	receipt_received = db.Column(db.Boolean, nullable = False)
 	ezag_id = db.Column(db.String(31), nullable = False)
 	bankstatement_period = db.Column(db.String(31), nullable = False)
+	custom_iban = db.Column(db.String(255), nullable = True)
+	custom_recipient = db.Column(db.String(255), nullable = True)
 
 
 class DetailMerchandise(db.Model):

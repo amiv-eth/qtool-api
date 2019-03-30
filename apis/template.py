@@ -8,6 +8,8 @@ from flask_restplus import abort
 
 from sql import db
 
+from math import ceil
+
 import enum
 
 class UserLevels(enum.Enum):
@@ -97,7 +99,8 @@ class EndpointConfiguration():
                 primaryItem[key] = secondaryDatabaseAccess[key].getUserLevelSchema(user).dump(result[idx+1])[0]
             items.append(primaryItem)
         response = {'items': items}
-        response['meta'] = {'page': page, 'results_on_this_page': resultsOnPage, 'max_results_per_page': perPage, 'total_results': totalResults}
+        lastPage = ceil(totalResults/perPage)
+        response['meta'] = {'page': page, 'last_page': lastPage, 'results_on_this_page': resultsOnPage, 'max_results_per_page': perPage, 'total_results': totalResults}
         return response
 
     def getElementById(self, id, user):
