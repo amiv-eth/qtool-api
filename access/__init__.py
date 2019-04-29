@@ -1,5 +1,6 @@
 from marshmallow import Schema, post_load
 
+
 class AccessControl():
     databaseName = None
     databasePrimaryKey = None
@@ -21,11 +22,11 @@ class AccessControl():
         print ("You are using the method getUserLevelSchema of the abstract class AccessControl, please redefine this method when inherting it!")
         raise TypeError
         return None
-        
+
 
 class EmbeddingSchema(Schema):
     accessData = {}
-    
+
     @post_load
     def mask_data(self, data):
         maskedAccessData = {}

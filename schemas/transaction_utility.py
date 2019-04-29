@@ -1,6 +1,8 @@
 from marshmallow import Schema, fields
-from sql.transaction_util import TransactionAccount, TransactionType, TransactionCategory, TransactionCurrency
+from sql.transaction_util import TransactionAccount, TransactionCategory
+from sql.transaction_util import TransactionCurrency, TransactionType
 from sql import db
+
 
 class TransactionTypeSchema(Schema):
     type_id = fields.Int()
@@ -13,6 +15,7 @@ class TransactionTypeSchema(Schema):
         db.session.add(element)
         db.session.commit()
 
+
 class TransactionAccountSchema(Schema):
     account = fields.Int()
     account_name = fields.Str()
@@ -23,6 +26,7 @@ class TransactionAccountSchema(Schema):
         db.session.add(element)
         db.session.commit()
 
+
 class TransactionCategorySchema(Schema):
     category = fields.Int()
     category_name = fields.Str()
@@ -32,6 +36,7 @@ class TransactionCategorySchema(Schema):
         element = TransactionCategory(**desirialized)
         db.session.add(element)
         db.session.commit()
+
 
 class TransactionCurrencySchema(Schema):
     currency_id = fields.Int()
