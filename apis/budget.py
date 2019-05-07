@@ -6,14 +6,14 @@ from sqlalchemy import or_
 
 from .utility import authenticate, queryDocumentation
 
-from access.budget_access import BudgetItemAccess
+from access.budget_access import BudgetItemAccess, BudgetGroupAccess, BudgetItemEmbeddable
 from access.transaction_access import TransactionAccess
 from apis.template import EndpointConfiguration
 
 
 api = Namespace('Budget', description='Budget related operations.')
 
-budgetItemConfiguration = EndpointConfiguration(api, 'item', BudgetItemAccess(), None)
+budgetItemConfiguration = EndpointConfiguration(api, 'item', BudgetItemAccess(), BudgetItemEmbeddable())
 
 
 @api.route('/'+budgetItemConfiguration.path)
@@ -50,6 +50,34 @@ class BudgetItemEndpointById(Resource):
         budgetItemConfiguration.getElementById(id, user).budgetitem_code = "0"
         db.session.commit()
         return {"message": "Operation successful."}, 202
+
+
+budgetGroupConfiguration = EndpointConfiguration(api, 'group', BudgetGroupAccess(), None)
+
+@api.route('/'+budgetGroupConfiguration.path)
+@api.doc(security = 'amivapitoken')
+class BudgetGroupEndpoint(Resource):
+    @api.doc(params=queryDocumentation)
+    @authenticate()
+    def get(self,user):
+        return budgetGroupConfiguration.getRequest(user)
+        
+    @api.expect(budgetGroupConfiguration.model)
+    @authenticate(requiredUserLevelBit = [9])
+    def post(self, user):
+        return budgetGroupConfiguration.postRequest(user)
+
+@api.route('/'+budgetGroupConfiguration.path+'/<string:id>')
+@api.doc(security = 'amivapitoken')
+class BudgetGroupEndpointById(Resource):
+    @authenticate()
+    def get(self,id,user):
+        return budgetGroupConfiguration.getRequestById(user,id)
+
+    @api.expect(budgetGroupConfiguration.model)
+    @authenticate(requiredUserLevelBit = [9])
+    def patch(self,id,user):
+        return budgetGroupConfiguration.patchRequestById(user,id)
 
 
 # ToDo: Add means to query by calculated results!
