@@ -2,6 +2,8 @@ from flask_restplus import Namespace, Resource
 
 from .utility import authenticate, queryDocumentation
 
+from sql import db
+
 from .template import EndpointConfiguration
 
 from access.invoice_access import InvoiceAccess, InvoiceEmbeddable, InvoiceItemAccess, InvoiceItemEmbeddable
@@ -18,13 +20,59 @@ class InvoiceEndpoint(Resource):
     def get(self,user):
         return invoiceConfiguration.getRequest(user)
 
+    @api.expect(invoiceConfiguration.model)
+    @authenticate(requiredUserLevelBit = [9])
+    def post(self, user):
+        return invoiceConfiguration.postRequest(user)
+
+@api.route('/'+invoiceConfiguration.path+'/<string:id>')
+@api.doc(security = 'amivapitoken')
+class InvoiceEndpointById(Resource):
+    @authenticate()
+    def get(self,id,user):
+        return invoiceConfiguration.getRequestById(user,id)
+
+    @api.expect(invoiceConfiguration.model)
+    @authenticate(requiredUserLevelBit = [9])
+    def patch(self,id,user):
+        return invoiceConfiguration.patchRequestById(user,id)
+
+    @authenticate(requiredUserLevelBit = [9])
+    def delete(self,id,user):
+        invoiceConfiguration.getElementById(id, user).is_valid = False
+        db.session.commit()
+        return {"message": "Operation successful."}, 202
+
 
 invoiceItemConfiguration = EndpointConfiguration(api, 'invoiceItem', InvoiceItemAccess(), InvoiceItemEmbeddable())
 
+# ToDo: Post Transaction before invoice item, to obtain a transaction id
+
 @api.route('/'+invoiceItemConfiguration.path)
 @api.doc(security = 'amivapitoken')
-class AccountEndpoint(Resource):
+class InvoiceItemEndpoint(Resource):
     @api.doc(params=queryDocumentation)
     @authenticate()
     def get(self,user):
         return invoiceItemConfiguration.getRequest(user)
+
+    """
+    @api.expect(invoiceItemConfiguration.model)
+    @authenticate(requiredUserLevelBit = [9])
+    def post(self, user):
+        return invoiceItemConfiguration.postRequest(user)
+    """
+
+@api.route('/'+invoiceItemConfiguration.path+'/<string:id>')
+@api.doc(security = 'amivapitoken')
+class InvoiceItemEndpointById(Resource):
+    @authenticate()
+    def get(self,id,user):
+        return invoiceItemConfiguration.getRequestById(user,id)
+
+    """
+    @api.expect(invoiceItemConfiguration.model)
+    @authenticate(requiredUserLevelBit = [9])
+    def patch(self,id,user):
+        return invoiceItemConfiguration.patchRequestById(user,id)
+    """

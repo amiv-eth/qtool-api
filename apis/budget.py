@@ -103,4 +103,9 @@ def calculateBudget(serializedResponseList):
             if expTransaction[0]:
                 expSum = expSum + float(expTransaction[0])
         serializedBudgetItem['expenditure_calculated'] = expSum
+        calculateDifferences(serializedBudgetItem, 'calculated')
+        calculateDifferences(serializedBudgetItem, 'confirmed')
+        calculateDifferences(serializedBudgetItem, 'budgeted')
 
+def calculateDifferences(serializedItem, key):
+    serializedItem['difference_'+key] = round(serializedItem['revenue_'+key] - serializedItem['expenditure_'+key], 2)

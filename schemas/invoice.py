@@ -1,4 +1,6 @@
 from marshmallow import Schema, fields
+from sql import db
+from sql.invoice import Invoice, InvoiceItem
 
 class InvoiceSchema(Schema):
     invoice_id = fields.Int(dump_only=True)
@@ -13,6 +15,12 @@ class InvoiceSchema(Schema):
     pdf_path = fields.Str()
     is_valid = fields.Bool()
 
+    def load_commit(self, data):
+        desirialized = self.load(data)[0]
+        element = Invoice(**desirialized)
+        db.session.add(element)
+        db.session.commit()
+
 
 class InvoiceItemSchema(Schema):
     transaction_id = fields.Int(dump_only=True)
@@ -23,4 +31,10 @@ class InvoiceItemSchema(Schema):
     taxrate = fields.Float()
     unitprice = fields.Float()
 
-    invoice_id = fields.String(dump_only = True)
+    invoice_id = fields.String()
+
+    def load_commit(self, data):
+        desirialized = self.load(data)[0]
+        element = InvoiceItem(**desirialized)
+        db.session.add(element)
+        db.session.commit()
