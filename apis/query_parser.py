@@ -20,20 +20,9 @@ def queryParser(dbClass = None, embeddingSchema = None):
     schema = QuerySchema()
     query = schema.load(arguments)[0]
     args = {}
+    embedding = None
     if 'page' in query:
         args['page'] = query['page']
-
-    if 'where' in query:
-        try:
-            whereDict = literal_eval(query['where'])
-        except:
-            abort(400, 'Invalid syntax for query parameter where, please pass a valid dicitionary.')
-        if not (type(whereDict) is dict):
-            abort(400, 'Invalid syntax for query parameter where, please pass a valid dicitionary.')
-        args['where'] = filterParser(whereDict,dbClass)
-
-    if 'sort' in query:
-        args['sort'] = sortingParser(query['sort'],dbClass)
 
     if 'embedded' in query:
         try:
@@ -42,12 +31,25 @@ def queryParser(dbClass = None, embeddingSchema = None):
             abort(400, 'Invalid syntax for query parameter embedded, please pass a valid dicitionary.')
         if not (type(embeddingDict) is dict):
             abort(400, 'Invalid syntax for query parameter embedded, please pass a valid dicitionary.')
-        args['embedded'] = embeddingParser(embeddingDict, embeddingSchema)
+        embedding = embeddingParser(embeddingDict, embeddingSchema)
+        args['embedded'] = embedding 
+
+    if 'where' in query:
+        try:
+            whereDict = literal_eval(query['where'])
+        except:
+            abort(400, 'Invalid syntax for query parameter where, please pass a valid dicitionary.')
+        if not (type(whereDict) is dict):
+            abort(400, 'Invalid syntax for query parameter where, please pass a valid dicitionary.')
+        args['where'] = filterParser(whereDict,dbClass, embedding)
+
+    if 'sort' in query:
+        args['sort'] = sortingParser(query['sort'],dbClass, embedding)
 
     return args
 
 
-def filterParser(whereStatement,dbClass):
+def filterParser(whereStatement,dbClass, embedding):
     if len(whereStatement) > 1:
         abort(400, 'Invalid syntax for query parameter where, wrong number of arguments!')
     
@@ -58,7 +60,7 @@ def filterParser(whereStatement,dbClass):
             abort(400, 'Invalid syntax for query parameter where. An and statement requires a list of dicitionaries!')
         filterCondition = True
         for statement in filterList:
-            filterCondition = and_(filterCondition, filterParser(statement, dbClass))
+            filterCondition = and_(filterCondition, filterParser(statement, dbClass, embedding))
 
     elif 'or' == key:
         filterList = whereStatement[key]
@@ -66,20 +68,32 @@ def filterParser(whereStatement,dbClass):
             abort(400, 'Invalid syntax for query parameter where. An or statement requires a list of dicitionaries!')
         filterCondition = False
         for statement in filterList:
-            filterCondition = or_(filterCondition, filterParser(statement, dbClass))
+            filterCondition = or_(filterCondition, filterParser(statement, dbClass, embedding))
         # Ensure consistent results, when receiving an empty or statement.
         if len(filterList) == 0:
             filterCondition = True
 
     else:
-        filterCondition = createFilterCondition(key,whereStatement[key], dbClass)
+        filterCondition = createFilterCondition(key,whereStatement[key], dbClass, embedding)
             
     return filterCondition
 
-def createFilterCondition(condition, val, dbClass):
-    if not ('.' in condition):
+def createFilterCondition(condition, val, dbClass, embedding):
+    parameters = condition.split('.')
+    embeddedKey = None
+    if len(parameters) == 1:
         abort(400, 'Invalid syntax for query parameter where, operator missing!')
-    [attr, op] = condition.split('.')
+    elif len(parameters) == 2:
+        [attr, op] = parameters
+    elif len(parameters) == 3:
+        [embeddedKey, attr, op] = parameters
+    else:
+        abort(400, 'Invalid syntax for query parameter where, to many arguments given!')
+    if embeddedKey:
+        if embeddedKey in embedding:
+            dbClass = embedding[embeddedKey]().databaseName
+        else:
+            abort(400, 'Invalid syntax for query parameter where, invalid key for embedded data given! The key might be correct, but the data not embedded.')
     # ToDo: schema load for input validation
     if op == "eq":
         condition = getattr(dbClass, attr) == val
@@ -99,18 +113,28 @@ def createFilterCondition(condition, val, dbClass):
 
 
 
-def sortingParser(sortingKey,dbClass):
+def sortingParser(sortingKey,dbClass, embedding):
+    errorMessage = 'Invalid sorting parameter. The following syntax is expected: parameter.asc or parameter.desc. If you want to filter by an embedded value use: embedded.parameter.ordering.'
+    parameters = sortingKey.split('.')
+    embeddedKey = None
+    if len(parameters) == 2:
+        [key, ordering] = parameters
+    elif len(parameters) == 3:
+        [embeddedKey, key, ordering] = parameters
+    else:
+        abort(400, errorMessage)
     try:
-        [key,ordering] = sortingKey.split('.')
+        if embeddedKey:
+            dbClass = embedding[embeddedKey]().databaseName
         sortingParameter = getattr(dbClass, key)
         if ordering == 'asc':
             return sortingParameter
         elif ordering == 'desc':
             return desc(sortingParameter)
         else:
-            abort(400, 'Invalid sorting parameter. The following syntax is expected: parameter.asc or parameter.desc.')
+            abort(400, errorMessage)
     except:
-        abort(400, 'Invalid sorting parameter. The following syntax is expected: parameter.asc or parameter.desc.')
+        abort(400, errorMessage)
 
 def embeddingParser(embeddingDict,embeddingSchema):
     if not embeddingSchema:
