@@ -5,6 +5,7 @@ class AmivapiSessionSchema(Schema):
     token = fields.Str()
 
 class AmivapiUserSchema(Schema):
+    _id = fields.Str()
     nethz = fields.Str()
     firstname = fields.Str()
     lastname = fields.Str()
