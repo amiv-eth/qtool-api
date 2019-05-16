@@ -6,6 +6,8 @@ from schemas.sessions import AmivapiSessionSchema, AmivapiUserSchema
 
 import requests
 
+from .utility import sessionHandler
+
 api = Namespace('Session', description='Session related operations.')
 
 model = api.model('Session', {'amivapi-session-token': fields.String})
@@ -28,7 +30,6 @@ class SessionEndpoint(Resource):
             abort(400, "Session could not be created!")
         session = sessionSchema.load(sessionRaw.json())[0]
 
-        print(amivAPIConfig.server+'users/'+session['user'])
         userRaw = requests.get(
             amivAPIConfig.server+'users/'+session['user'],
             headers={
@@ -39,4 +40,5 @@ class SessionEndpoint(Resource):
         if not userRaw:
             abort(400, "User doesn't exist anymore.")
         user = userSchema.load(userRaw.json())[0]
-        return(user['nethz'] + " successfully loged in!", 200)
+        qtoolSession = sessionHandler.addSession(user)
+        return(qtoolSession, 200)

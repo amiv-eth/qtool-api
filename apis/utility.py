@@ -6,6 +6,27 @@ from sql import db
 from sql.people import User
 
 import marshmallow
+import secrets
+
+class SessionHandler:
+	qtoolSessions = {}
+
+	def addSession(self, user):
+		sessiontoken = secrets.token_urlsafe()
+		session = {
+			'qtoolSessionToken': sessiontoken,
+			'nethz': user['nethz']
+		}
+		self.qtoolSessions[sessiontoken] = session
+		return session
+
+	def getSession(self, token):
+		if not token in self.qtoolSessions:
+			return None
+		else:
+			return self.qtoolSessions[token]
+
+sessionHandler = SessionHandler()
 
 
 def authenticate(requiredUserLevelBit = None):
@@ -29,7 +50,14 @@ def authenticate(requiredUserLevelBit = None):
 			elif token == "quaestor":
 				user = query.filter(User.user_id == 100).first()
 			else:
-				return {"message": "User not logged in."}, 401
+				session = sessionHandler.getSession(token)
+				if session:
+					nethz = session['nethz']
+				else:
+					return {"message": "User not logged in."}, 401
+				user = query.filter(User.nethz == nethz).first()
+				if not user:
+					return {"message": "User does not exist."}, 401
 			
 			if requiredUserLevelBit:
 				if not checkUserLevelBits(user,requiredUserLevelBit):
