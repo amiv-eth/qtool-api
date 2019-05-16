@@ -6,19 +6,24 @@ from schemas.sessions import AmivapiSessionSchema, AmivapiUserSchema
 
 import requests
 
-from .utility import sessionHandler
+from .utility import sessionHandler, authenticate
 
 api = Namespace('Session', description='Session related operations.')
 
-model = api.model('Session', {'amivapi-session-token': fields.String})
+model = api.model('Session', {'amivapi_session_token': fields.String})
 sessionSchema = AmivapiSessionSchema()
 userSchema = AmivapiUserSchema()
 
 @api.route('/session')
 class SessionEndpoint(Resource):
+    @api.doc(security = 'amivapitoken')
+    @authenticate()
+    def get(self,user):
+        return sessionHandler.getAllSessions()
+
     @api.expect(model)
     def post(self):
-        token = api.payload['amivapi-session-token']
+        token = api.payload['amivapi_session_token']
         sessionRaw = requests.get(
             amivAPIConfig.server+'sessions/'+token,
             headers={

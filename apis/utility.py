@@ -14,7 +14,7 @@ class SessionHandler:
 	def addSession(self, user):
 		sessiontoken = secrets.token_urlsafe()
 		session = {
-			'qtoolSessionToken': sessiontoken,
+			'qtool_session_token': sessiontoken,
 			'nethz': user['nethz']
 		}
 		self.qtoolSessions[sessiontoken] = session
@@ -25,6 +25,12 @@ class SessionHandler:
 			return None
 		else:
 			return self.qtoolSessions[token]
+
+	def getAllSessions(self):
+		sessions = []
+		for sessiontoken in self.qtoolSessions:
+			sessions.append(self.qtoolSessions[sessiontoken])
+		return sessions
 
 sessionHandler = SessionHandler()
 
