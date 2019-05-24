@@ -11,11 +11,14 @@ import secrets
 class SessionHandler:
 	qtoolSessions = {}
 
-	def addSession(self, user):
+	def addSession(self, amivAPIUser):
 		sessiontoken = secrets.token_urlsafe()
+		query = db.session.query(User)
+		user = query.filter(User.nethz == amivAPIUser['nethz']).first()
 		session = {
 			'qtool_session_token': sessiontoken,
-			'nethz': user['nethz']
+			'nethz': user.nethz,
+			'user_id': user.user_id
 		}
 		self.qtoolSessions[sessiontoken] = session
 		return session
