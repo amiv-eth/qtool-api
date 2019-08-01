@@ -6,7 +6,12 @@ from sql import db
 
 from .template import EndpointConfiguration
 
+from sqlalchemy.orm import joinedload
+
 from access.invoice_access import InvoiceAccess, InvoiceEmbeddable, InvoiceItemAccess, InvoiceItemEmbeddable
+
+from schemas.invoice import InvoiceSchema, InvoiceItemSchema
+from sql.invoice import Invoice, InvoiceItem
 
 api = Namespace('Invoice', description='Invoice related operations.')
 
@@ -18,7 +23,13 @@ class InvoiceEndpoint(Resource):
     @api.doc(params=queryDocumentation)
     @authenticate()
     def get(self,user):
+        invoice = Invoice.query.options(joinedload('issuer')).limit(25).all()
+        invoice_schema = InvoiceSchema(exclude=('issue_date','issuer.password',),many=True)
+        print(invoice_schema._declared_fields)
+        return invoice_schema.dump(invoice).data
+        """
         return invoiceConfiguration.getRequest(user)
+        """
 
     @api.expect(invoiceConfiguration.model)
     @authenticate(requiredUserLevelBit = [9])

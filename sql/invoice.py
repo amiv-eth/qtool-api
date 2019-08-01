@@ -16,6 +16,7 @@ class Invoice(db.Model):
     is_valid = db.Column(db.Boolean, nullable= False)
 
     items = db.relationship('InvoiceItem', backref='invoice', lazy=True)
+    issuer = db.relationship('User', lazy = True)
     
 class InvoiceItem(db.Model):
     transaction_id = db.Column(db.Integer, ForeignKey('transaction.id'), nullable=False, primary_key = True)
@@ -23,7 +24,7 @@ class InvoiceItem(db.Model):
     description = db.Column(db.Text, nullable=False)
     unit = db.Column(db.String(7), nullable=False)
     amount = db.Column(db.Integer, nullable=False)
-    taxrate = db.Column(db.Numeric(precision=2,scale=2), nullable=False)
-    unitprice = db.Column(db.Numeric(precision=10,scale=2), nullable=False)
+    taxrate = db.Column(db.Float(), nullable=False)
+    unitprice = db.Column(db.Float(), nullable=False)
 
     invoice_id = db.Column(db.Integer, db.ForeignKey('invoice.invoice_id'),nullable=False)

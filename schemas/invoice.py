@@ -1,7 +1,52 @@
 from marshmallow import Schema, fields
+from flask_marshmallow import Marshmallow
 from sql import db
 from sql.invoice import Invoice, InvoiceItem
 
+from sql.transactions import Transaction
+from sql.people import User
+
+ma = Marshmallow()
+
+class SmartNested(fields.Nested):
+    def serialize(self, attr, obj, accessor=None):
+        if attr not in obj.__dict__:
+            return int(getattr(obj, attr + "_id"))
+        return super(SmartNested, self).serialize(attr, obj, accessor)
+
+class InvoiceSchema(ma.ModelSchema):
+    class Meta:
+        model = Invoice
+        sqla_session = db.session
+        include_fk = True
+
+    itemsContent = fields.Nested('InvoiceItemSchema', default=[], many=True, exclude=('invoice',), attribute='items')
+    issuer = SmartNested('UserSchema2', default=[], many=False)
+    
+
+class InvoiceItemSchema(ma.ModelSchema):
+    class Meta:
+        model = InvoiceItem
+        sqla_session = db.session
+        include_fk = True
+
+    invoice = fields.Nested('InvoiceSchema', default=[], many=False, exclude=('items','itemsContent'))
+    transaction_id = fields.Nested('TransactionSchema2',default=[],many=False)
+
+class TransactionSchema2(ma.ModelSchema):
+    class Meta:
+        model = Transaction
+        sqla_session = db.session
+        include_fk = True
+
+class UserSchema2(ma.ModelSchema):
+    class Meta:
+        model = User
+        sqla_session = db.session
+        include_fk = True
+
+
+"""
 class InvoiceSchema(Schema):
     invoice_id = fields.Int(dump_only=True)
     invoice_number = fields.Str()
@@ -38,3 +83,4 @@ class InvoiceItemSchema(Schema):
         element = InvoiceItem(**desirialized)
         db.session.add(element)
         db.session.commit()
+"""
