@@ -2,6 +2,8 @@ from sql import db
 from sqlalchemy import ForeignKey
 import datetime
 
+from .products import InvoiceArticle
+
 class Invoice(db.Model):
     invoice_id = db.Column(db.Integer, nullable=False, primary_key=True)
     invoice_number = db.Column(db.String(7), nullable=False)
@@ -17,6 +19,7 @@ class Invoice(db.Model):
 
     items = db.relationship('InvoiceItem', backref='invoice', lazy=True)
     issuer = db.relationship('User', lazy = True)
+    customer = db.relationship('Customer', lazy = True)
     
 class InvoiceItem(db.Model):
     transaction_id = db.Column(db.Integer, ForeignKey('transaction.id'), nullable=False, primary_key = True)
@@ -26,5 +29,7 @@ class InvoiceItem(db.Model):
     amount = db.Column(db.Integer, nullable=False)
     taxrate = db.Column(db.Float(), nullable=False)
     unitprice = db.Column(db.Float(), nullable=False)
-
     invoice_id = db.Column(db.Integer, db.ForeignKey('invoice.invoice_id'),nullable=False)
+
+    transaction = db.relationship('Transaction', lazy = True)
+    article = db.relationship('InvoiceArticle', lazy = True)

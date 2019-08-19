@@ -20,8 +20,8 @@ class InvoiceSchema(ma.ModelSchema):
         sqla_session = db.session
         include_fk = True
 
-    itemsContent = fields.Nested('InvoiceItemSchema', default=[], many=True, exclude=('invoice',), attribute='items')
-    issuer = SmartNested('UserSchema2', default=[], many=False)
+    items = fields.Nested('InvoiceItemSchema', default=[], many=True, exclude=('invoice',))
+    issuer = SmartNested('UserSchema', default=[], many=False)
     
 
 class InvoiceItemSchema(ma.ModelSchema):
@@ -30,8 +30,8 @@ class InvoiceItemSchema(ma.ModelSchema):
         sqla_session = db.session
         include_fk = True
 
-    invoice = fields.Nested('InvoiceSchema', default=[], many=False, exclude=('items','itemsContent'))
-    transaction_id = fields.Nested('TransactionSchema2',default=[],many=False)
+    invoice = fields.Nested('InvoiceSchema', default=[], many=False, exclude=('items',))
+    transaction_id = fields.Nested('TransactionSchema',default=[],many=False)
 
 class TransactionSchema2(ma.ModelSchema):
     class Meta:
