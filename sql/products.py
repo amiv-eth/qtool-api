@@ -1,20 +1,19 @@
-from sql import db
-from flask_sqlalchemy import ForeignKey
+from sql import db, BaseModel
 
 
-class InvoiceArticle(db.Model):
+class InvoiceArticle(BaseModel):
     article_id = db.Column(db.Integer, nullable = False, primary_key=True)
     article_code = db.Column(db.String(255), nullable = False)
     article = db.Column(db.String(255), nullable=False)
     description = db.Column(db.String(255), nullable=False)
     unit = db.Column(db.String(255), nullable=False)
-    budgetitem_id = db.Column(db.Integer, ForeignKey('budget_item.budgetitem_id'), nullable= False)
+    budgetitem_id = db.Column(db.Integer, db.ForeignKey('budget_item.budgetitem_id'), nullable= False)
     productgroup = db.Column(db.String(255), nullable=False)
     mwst = db.Column(db.Numeric(precision=5,scale=2), nullable = False, default=0.00)
     unitprice = db.Column(db.Numeric(precision=8,scale=2), nullable = False, default=0.00)
 
 
-class MerchArticle(db.Model):
+class MerchArticle(BaseModel):
     article_id = db.Column(db.Integer, nullable = False, primary_key=True)
     article = db.Column(db.String(255), nullable = False)
     unitprice = db.Column(db.Numeric(precision=6,scale=2), nullable = False, default=0.00)

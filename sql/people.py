@@ -1,14 +1,13 @@
-from sql import db
-from flask_sqlalchemy import ForeignKey, relationship
+from sql import db, BaseModel
 
 
-association_table = db.Table('association_user_budgetitem', db.Model.metadata,
-    db.Column('user_id', db.Integer, ForeignKey('user.user_id')),
-    db.Column('budgetitem_id', db.Integer, ForeignKey('budget_item.budgetitem_id'))
+association_table = db.Table('association_user_budgetitem', BaseModel.metadata,
+    db.Column('user_id', db.Integer, db.ForeignKey('user.user_id')),
+    db.Column('budgetitem_id', db.Integer, db.ForeignKey('budget_item.budgetitem_id'))
 )
 
 
-class Customer(db.Model):
+class Customer(BaseModel):
     customer_id = db.Column(db.Integer, nullable = False, primary_key=True)
     category = db.Column(db.String(255), nullable=False)
     company = db.Column(db.String(255), nullable=False)
@@ -24,7 +23,7 @@ class Customer(db.Model):
     quotation = db.Column(db.String(255), nullable=False)
 
 
-class User(db.Model):
+class User(BaseModel):
     user_id = db.Column(db.Integer, nullable = False, primary_key=True)
     nethz = db.Column(db.String(255), nullable = False)
     password = db.Column(db.String(255), nullable = False)
@@ -35,7 +34,7 @@ class User(db.Model):
     role = db.Column(db.String(255), nullable=False)
     amiv_email = db.Column(db.String(255), nullable=False)
     user_privileges = db.Column(db.Integer, nullable=False)
-    own_budgetitem_id = relationship("BudgetItem",secondary=association_table)
+    own_budgetitem_id = db.relationship("BudgetItem",secondary=association_table)
 
 
 
