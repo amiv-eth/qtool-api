@@ -1,7 +1,7 @@
 from access import AccessControl
 
 # Databases
-from sql.transaction_util import TransactionAccount, TransactionCategory, TransactionCurrency, TransactionType
+from sql.transaction_utility import TransactionAccount, TransactionCategory, TransactionCurrency, TransactionType
 
 # Schemas
 from schemas.transaction_utility import TransactionAccountSchema, TransactionCategorySchema, TransactionCurrencySchema, TransactionTypeSchema

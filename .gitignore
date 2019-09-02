@@ -1,4 +1,5 @@
 config.py
 migration.py
+testing.py
 db_migration/*
 *.pyc

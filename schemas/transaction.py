@@ -1,42 +1,19 @@
-from marshmallow import Schema, fields
-from sql import db
-from sql.transactions import Transaction
+from marshmallow_sqlalchemy import ModelSchema
+from sql.transactions import Transaction, DetailReceipt
+from sql.transactions import DetailMerchandise, Ezag
 
+class TransactionSchema(ModelSchema):
+    class Meta:
+        model = Transaction
 
-#Used to transform json to DB-Objects and vice-versa
-class TransactionSchema(Schema):
-	id = fields.Int(dump_only=True)
-	financial_year = fields.Int()
-	date = fields.DateTime()
-	type_id = fields.Int()
-	description = fields.Str()
-	category_id = fields.Int()
-	budgetitem_id = fields.Int()
-	account_id = fields.Int()
-	is_valid = fields.Bool()
-	amount = fields.Float()
-	currency_id = fields.Int()
-	amount_in_chf = fields.Float()
-	user_id = fields.Int()
-	comment = fields.Str()
+class ReceiptSchema(ModelSchema):
+    class Meta:
+        model = DetailReceipt
 
-	def load_commit(self, data):
-	    desirialized = self.load(data)[0]
-	    element = Transaction(**desirialized)
-	    db.session.add(element)
-	    db.session.commit()
+class MerchandiseSchema(ModelSchema):
+    class Meta:
+        model = DetailMerchandise
 
-class ReceiptSchema(Schema):
-	transaction_id = fields.Int(dump_only=True)
-	receipt_received = fields.Bool()
-	ezag_id = fields.Str()
-	bankstatement_period = fields.Str()
-	custom_iban = fields.Str()
-	custom_recipient = fields.Str()
-
-class MerchSchema(Schema):
-	transaction_id = fields.Int(dump_only=True)
-	price = fields.Float()
-	quantity = fields.Int()
-	article_id = fields.Int()
-
+class EzagSchema(ModelSchema):
+    class Meta:
+        model = Ezag
