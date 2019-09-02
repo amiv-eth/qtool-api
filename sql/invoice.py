@@ -8,7 +8,7 @@ from .products import InvoiceArticle
 class Invoice(db.Model):
     invoice_id = db.Column(db.Integer, nullable=False, primary_key=True)
     invoice_number = db.Column(db.String(7), nullable=False)
-    issuer_id = db.Column(db.Integer, ForeignKey('user.user_id'), nullable= False)
+    user_id = db.Column(db.Integer, ForeignKey('user.user_id'), nullable= False)
     issue_date = db.Column(db.DATE, default = datetime.datetime.now, nullable= False)
     ext_customer_db = db.Column(db.Boolean, nullable=False)
     customer_id = db.Column(db.Integer, ForeignKey('customer.customer_id'), nullable=False)
