@@ -1,8 +1,9 @@
 from sql import db
-from sqlalchemy import ForeignKey
+from flask_sqlalchemy import ForeignKey
 import datetime
 
 from .products import InvoiceArticle
+
 
 class Invoice(db.Model):
     invoice_id = db.Column(db.Integer, nullable=False, primary_key=True)
@@ -21,8 +22,10 @@ class Invoice(db.Model):
     issuer = db.relationship('User', lazy = True)
     customer = db.relationship('Customer', lazy = True)
     
+
 class InvoiceItem(db.Model):
-    transaction_id = db.Column(db.Integer, ForeignKey('transaction.id'), nullable=False, primary_key = True)
+    invoice_item_id = db.Column(db.Integer, nullable=False, primary_key=True)
+    transaction_id = db.Column(db.Integer, ForeignKey('transaction.transaction_id'), nullable=False, primary_key = False)
     article_id = db.Column(db.Integer, ForeignKey('invoice_article.article_id'),  nullable=False)
     description = db.Column(db.Text, nullable=False)
     unit = db.Column(db.String(7), nullable=False)

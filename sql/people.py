@@ -1,27 +1,28 @@
 from sql import db
-from sqlalchemy import ForeignKey
-from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.mysql import INTEGER
+from flask_sqlalchemy import ForeignKey, relationship
+
 
 association_table = db.Table('association_user_budgetitem', db.Model.metadata,
     db.Column('user_id', db.Integer, ForeignKey('user.user_id')),
     db.Column('budgetitem_id', db.Integer, ForeignKey('budget_item.budgetitem_id'))
 )
 
+
 class Customer(db.Model):
-	customer_id = db.Column(db.Integer, nullable = False, primary_key=True)
-	category = db.Column(db.String(255), nullable=False)
-	company = db.Column(db.String(255), nullable=False)
-	title = db.Column(db.String(255), nullable=False)
-	first_name = db.Column(db.String(255), nullable=False)
-	last_name = db.Column(db.String(255), nullable=False)
-	address = db.Column(db.String(255), nullable=False)
-	plz = db.Column(db.String(255), nullable=False)
-	city = db.Column(db.String(255), nullable=False)
-	country = db.Column(db.String(255), nullable=False)
-	phone = db.Column(db.String(255), nullable=False)
-	email = db.Column(db.String(255), nullable=False)
-	quotation = db.Column(db.String(255), nullable=False)
+    customer_id = db.Column(db.Integer, nullable = False, primary_key=True)
+    category = db.Column(db.String(255), nullable=False)
+    company = db.Column(db.String(255), nullable=False)
+    title = db.Column(db.String(255), nullable=False)
+    first_name = db.Column(db.String(255), nullable=False)
+    last_name = db.Column(db.String(255), nullable=False)
+    address = db.Column(db.String(255), nullable=False)
+    plz = db.Column(db.String(255), nullable=False)
+    city = db.Column(db.String(255), nullable=False)
+    country = db.Column(db.String(255), nullable=False)
+    phone = db.Column(db.String(255), nullable=False)
+    email = db.Column(db.String(255), nullable=False)
+    quotation = db.Column(db.String(255), nullable=False)
+
 
 class User(db.Model):
     user_id = db.Column(db.Integer, nullable = False, primary_key=True)
@@ -33,7 +34,7 @@ class User(db.Model):
     bic = db.Column(db.String(255), nullable = False)
     role = db.Column(db.String(255), nullable=False)
     amiv_email = db.Column(db.String(255), nullable=False)
-    user_privileges = db.Column(INTEGER(6), nullable=False)
+    user_privileges = db.Column(db.Integer, nullable=False)
     own_budgetitem_id = relationship("BudgetItem",secondary=association_table)
 
 
