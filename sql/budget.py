@@ -6,7 +6,7 @@ class BudgetItem(BaseModel):
     budgetitem_code = db.Column(db.String(4), nullable = False)
     budgetgroup_id = db.Column(db.Integer, db.ForeignKey('budget_group.budgetgroup_id'), nullable = False)
     budgetitem_name = db.Column(db.String(255), nullable = False)
-    financial_year = db.Column(db.Integer, db.ForeignKey('financial_year.financial_year_id'), nullable = True)
+    financial_year_id = db.Column(db.Integer, db.ForeignKey('financial_year.financial_year_id'), nullable = True)
     expenditure_budgeted = db.Column(db.Numeric(precision=10,scale=2), nullable = False, default=0.00)
     revenue_budgeted = db.Column(db.Numeric(precision=10,scale=2), nullable = False, default=0.00)
     expenditure_confirmed = db.Column(db.Numeric(precision=10,scale=2), nullable = False, default=0.00)

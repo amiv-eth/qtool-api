@@ -1,18 +1,9 @@
-from marshmallow import Schema, fields
-from flask_marshmallow import Marshmallow
+from schemas import ma, SmartNested
 from sql import db
 from sql.invoice import Invoice, InvoiceItem
 
 from sql.transactions import Transaction
 from sql.people import User
-
-ma = Marshmallow()
-
-class SmartNested(fields.Nested):
-    def serialize(self, attr, obj, accessor=None):
-        if attr not in obj.__dict__:
-            return int(getattr(obj, attr + "_id"))
-        return super(SmartNested, self).serialize(attr, obj, accessor)
 
 class InvoiceSchema(ma.ModelSchema):
     class Meta:
@@ -20,7 +11,7 @@ class InvoiceSchema(ma.ModelSchema):
         sqla_session = db.session
         include_fk = True
 
-    items = fields.Nested('InvoiceItemSchema', default=[], many=True, exclude=('invoice',))
+    items = ma.fields.Nested('InvoiceItemSchema', default=[], many=True, exclude=('invoice',))
     issuer = SmartNested('UserSchema', default=[], many=False)
     
 
@@ -30,8 +21,8 @@ class InvoiceItemSchema(ma.ModelSchema):
         sqla_session = db.session
         include_fk = True
 
-    invoice = fields.Nested('InvoiceSchema', default=[], many=False, exclude=('items',))
-    transaction_id = fields.Nested('TransactionSchema',default=[],many=False)
+    invoice = ma.fields.Nested('InvoiceSchema', default=[], many=False, exclude=('items',))
+    transaction_id = ma.fields.Nested('TransactionSchema',default=[],many=False)
 
 class TransactionSchema2(ma.ModelSchema):
     class Meta:

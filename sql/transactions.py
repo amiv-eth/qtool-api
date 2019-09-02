@@ -4,7 +4,7 @@ import datetime
 
 class Transaction(BaseModel):
     transaction_id = db.Column(db.Integer, nullable=False, primary_key=True)
-    financial_year = financial_year = db.Column(db.Integer, db.ForeignKey('financial_year.financial_year_id'), nullable = False)
+    financial_year_id = db.Column(db.Integer, db.ForeignKey('financial_year.financial_year_id'), nullable = False)
     date = db.Column(db.DateTime, default = datetime.datetime.now, nullable= False)
     type_id = db.Column(db.Integer, db.ForeignKey('transaction_type.type_id'), nullable = False)
     description = db.Column(db.String(255), nullable=False)
