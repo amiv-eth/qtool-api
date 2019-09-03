@@ -1,4 +1,5 @@
 from schemas import ma, SmartNested
+from marshmallow import fields
 from sql import db
 from sql.invoice import Invoice, InvoiceItem
 
@@ -11,7 +12,7 @@ class InvoiceSchema(ma.ModelSchema):
         sqla_session = db.session
         include_fk = True
 
-    items = ma.fields.Nested('InvoiceItemSchema', default=[], many=True, exclude=('invoice',))
+    items = fields.Nested('InvoiceItemSchema', default=[], many=True, exclude=('invoice',))
     issuer = SmartNested('UserSchema', default=[], many=False)
     
 
@@ -21,8 +22,8 @@ class InvoiceItemSchema(ma.ModelSchema):
         sqla_session = db.session
         include_fk = True
 
-    invoice = ma.fields.Nested('InvoiceSchema', default=[], many=False, exclude=('items',))
-    transaction_id = ma.fields.Nested('TransactionSchema',default=[],many=False)
+    invoice = fields.Nested('InvoiceSchema', default=[], many=False, exclude=('items',))
+    transaction_id = fields.Nested('TransactionSchema',default=[],many=False)
 
 class TransactionSchema2(ma.ModelSchema):
     class Meta:
