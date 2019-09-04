@@ -2,12 +2,15 @@ from marshmallow_sqlalchemy import ModelSchema
 from sql.transactions import Transaction, DetailReceipt
 from sql.transactions import DetailMerchandise, Ezag
 from schemas import SmartNested
+from marshmallow.fields import Float
 
 
 class TransactionSchema(ModelSchema):
     class Meta:
         model = Transaction
 
+    amount = Float()
+    amount_in_chf = Float()
     financial_year = SmartNested("FinancialYearSchema", default=[], many=False)
     budgetitem = SmartNested("BudgetItemSchema", default=[], many=False)
     account = SmartNested("TransactionAccountSchema", default=[], many=False)

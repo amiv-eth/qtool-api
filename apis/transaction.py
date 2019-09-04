@@ -14,6 +14,12 @@ from schemas.transaction import Transaction, TransactionSchema
 
 from .query_parser import queryParser
 
+from flask import jsonify
+
+import decimal
+
+from .database_request import loadPage
+
 
 api = Namespace('Transaction', description='Transaction related operations.')
 
@@ -25,21 +31,21 @@ queryDocumentation = {
 }
 
 
-
-
 @api.route('/transactions')
 @api.doc(security = 'amivapitoken')
 class TransactionEndpoint(Resource):
     @api.doc(params=queryDocumentation)
     def get(self):
-        
+        return loadPage(Transaction, TransactionSchema, )
+        """
         args = queryParser(Transaction, None)
         index = args["page"]
         print(args)
         transaction = Transaction.query.options(args["embedded"]).order_by(Transaction.transaction_id).offset(25*(index-1)).limit(25)
-        transaction_dumped = TransactionSchema(many=True).dump(transaction)
-        print(transaction_dumped.data)
-        return (transaction_dumped.data,200)
+        transaction_dumped = TransactionSchema(many=True).dump(transaction).data
+        print(transaction_dumped)
+        return transaction_dumped
+        """
 
 
 """

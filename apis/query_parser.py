@@ -16,7 +16,7 @@ class QuerySchema(Schema):
     embedded = fields.Str()
     
 
-def queryParser(dbClass = None, embeddingSchema = None):
+def queryParser(dbClass = None):
     arguments = request.args.to_dict()
     schema = QuerySchema()
     query = schema.load(arguments)[0]
