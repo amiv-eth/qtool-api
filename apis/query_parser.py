@@ -3,6 +3,7 @@ from flask import request
 from flask_restplus import abort
 
 from sqlalchemy import desc, or_, and_
+from sqlalchemy.orm import relationship, joinedload
 
 from ast import literal_eval
 
@@ -31,7 +32,7 @@ def queryParser(dbClass = None, embeddingSchema = None):
             abort(400, 'Invalid syntax for query parameter embedded, please pass a valid dicitionary.')
         if not (type(embeddingDict) is dict):
             abort(400, 'Invalid syntax for query parameter embedded, please pass a valid dicitionary.')
-        embedding = embeddingParser(embeddingDict, embeddingSchema)
+        embedding = embeddingParser(embeddingDict, dbClass)
         args['embedded'] = embedding 
 
     if 'where' in query:
@@ -136,8 +137,13 @@ def sortingParser(sortingKey,dbClass, embedding):
     except:
         abort(400, errorMessage)
 
-def embeddingParser(embeddingDict,embeddingSchema):
-    if not embeddingSchema:
-        return {}
-    embedding = embeddingSchema.load(embeddingDict)[0]
-    return embedding
+def embeddingParser(embeddingDict,dbClass):
+    joinedLoadList = []
+    for key in embeddingDict:
+        if embeddingDict[key]:
+            if not hasattr(dbClass, key):
+                abort(400, 'Invalid syntax for query parameter embedding, ' + key + ' is not a valid attribute!')
+            if type((getattr(dbClass,key).property)) != type(relationship(None)):
+                abort(400, 'Invalid syntax for query parameter embedding, ' + key + ' is not a related resource!')
+            joinedLoadList.append(joinedload(key))
+    return tuple(joinedLoadList)

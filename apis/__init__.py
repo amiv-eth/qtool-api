@@ -1,12 +1,12 @@
 from flask_restplus import Api
 
 from .transaction import api as transaction
-from .invoice import api as invoice
-from .budget import api as budget
-from .transaction_utility import api as transaction_utility
-from .people import api as people
-from .products import api as products
-from .sessions import api as sessions
+#from .invoice import api as invoice
+#from .budget import api as budget
+#from .transaction_utility import api as transaction_utility
+#from .people import api as people
+#from .products import api as products
+#from .sessions import api as sessions
 
 authorizations = {
 	'amivapitoken' :{
@@ -24,10 +24,10 @@ api = Api(
     # All API metadatas
 )
 
-api.add_namespace(budget)
-api.add_namespace(people)
-api.add_namespace(products)
-api.add_namespace(invoice)
-api.add_namespace(sessions)
+#api.add_namespace(budget)
+#api.add_namespace(people)
+#api.add_namespace(products)
+#api.add_namespace(invoice)
+#api.add_namespace(sessions)
 api.add_namespace(transaction)
-api.add_namespace(transaction_utility)
+#api.add_namespace(transaction_utility)
