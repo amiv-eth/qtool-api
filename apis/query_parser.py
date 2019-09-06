@@ -14,8 +14,67 @@ class QuerySchema(Schema):
     sort = fields.Str()
     page = fields.Int()
     embedded = fields.Str()
-    
 
+def queryParser(dbClass):
+    query = request.args.to_dict()
+    query = QuerySchema().load(query).data
+
+    if 'sort' in query:
+        query['sort'] = sortParser(dbClass, query['sort'])
+
+    if 'embedded' in query:
+        query['embedded'] = embeddingParser(dbClass, query['embedded'])
+
+
+    parameters = {
+        "where": True,
+        "sort": None,
+        "page": 1,
+        "embedded": ()
+        }
+
+
+
+
+    parameters.update(query)
+
+    return parameters
+
+def decomposeNestedOperator(dbClass, opString):
+    parameters = opString.split('.')
+    numberOfParameters = len(parameters)
+    if numberOfParameters == 3:
+        [relation, attribute, operator] = parameters
+        try:
+            dbClass = getattr(dbClass, relation).property.entity.class_
+        except:
+            errorMessage = '[Query Error]: ' + dbClass.__tablename__ + ' has no related database called '+ relation + '.'
+            abort(400, errorMessage)    
+    elif numberOfParameters == 2:
+        [attribute, operator] = parameters
+    else: 
+        errorMessage = '[Query Error]: Invalid operation: ' + opString + ', the following syntax is expected: (embeddedResource.)attribute.operator.'
+        abort(400, errorMessage)
+    try:
+        attributeInstance = getattr(dbClass, attribute)
+    except: 
+        errorMessage = '[Query Error]: ' + dbClass.__tablename__ + ' has no attribute called '+ attribute + '.'
+        abort(400, errorMessage)
+    return (attributeInstance,operator)
+
+def sortParser(dbClass, sortingParameter):
+    #ToDo: Can not sort by an unloaded related database!
+    (attribute, operator) = decomposeNestedOperator(dbClass, sortingParameter)
+    if operator == 'asc':
+        return attribute
+    elif operator == 'desc':
+        return desc(attribute)
+    else:
+        errorMessage = '[Query Error]: ' + operator + ' is no valid sorting order. Use asc or desc.'
+        abort(400, errorMessage)
+
+ 
+"""
 def queryParser(dbClass = None):
     arguments = request.args.to_dict()
     schema = QuerySchema()
@@ -49,7 +108,7 @@ def queryParser(dbClass = None):
 
     return args
 
-
+"""
 def filterParser(whereStatement,dbClass, embedding):
     if len(whereStatement) > 1:
         abort(400, 'Invalid syntax for query parameter where, wrong number of arguments!')
@@ -114,30 +173,12 @@ def createFilterCondition(condition, val, dbClass, embedding):
 
 
 
-def sortingParser(sortingKey,dbClass, embedding):
-    errorMessage = 'Invalid sorting parameter. The following syntax is expected: parameter.asc or parameter.desc. If you want to filter by an embedded value use: embedded.parameter.ordering.'
-    parameters = sortingKey.split('.')
-    embeddedKey = None
-    if len(parameters) == 2:
-        [key, ordering] = parameters
-    elif len(parameters) == 3:
-        [embeddedKey, key, ordering] = parameters
-    else:
-        abort(400, errorMessage)
+def embeddingParser(dbClass, embedded):
     try:
-        if embeddedKey:
-            dbClass = embedding[embeddedKey]().databaseName
-        sortingParameter = getattr(dbClass, key)
-        if ordering == 'asc':
-            return sortingParameter
-        elif ordering == 'desc':
-            return desc(sortingParameter)
-        else:
-            abort(400, errorMessage)
+        embeddingDict = literal_eval(embedded)
+        embeddingDict = dict(embeddingDict)
     except:
-        abort(400, errorMessage)
-
-def embeddingParser(embeddingDict,dbClass):
+        abort(400, 'Invalid syntax for query parameter embedded, please pass a valid dicitionary.')
     joinedLoadList = []
     for key in embeddingDict:
         if embeddingDict[key]:

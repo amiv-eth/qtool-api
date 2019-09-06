@@ -36,7 +36,7 @@ queryDocumentation = {
 class TransactionEndpoint(Resource):
     @api.doc(params=queryDocumentation)
     def get(self):
-        return loadPage(Transaction, TransactionSchema, )
+        return loadPage(Transaction, TransactionSchema)
         """
         args = queryParser(Transaction, None)
         index = args["page"]
