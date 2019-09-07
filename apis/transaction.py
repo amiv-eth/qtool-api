@@ -16,7 +16,7 @@ from flask import jsonify
 
 import decimal
 
-from .database_request import loadPage
+from .database_request import loadPage, loadEntry
 
 
 api = Namespace('Transaction', description='Transaction related operations.')
@@ -44,6 +44,26 @@ class TransactionEndpoint(Resource):
         print(transaction_dumped)
         return transaction_dumped
         """
+
+@api.route('/transactions/<string:id>')
+@api.doc(security = 'amivapitoken')
+class TransactionEndpointById(Resource):
+    @api.doc(params=queryDocumentation)
+    def get(self,id):
+        return loadEntry(Transaction, TransactionSchema, id)
+
+    """
+    @api.expect(transactionConfiguration.model)
+    @authenticate(requiredUserLevelBit = [9])
+    def patch(self,id,user):
+        return transactionConfiguration.patchRequestById(user,id)
+
+    @authenticate(requiredUserLevelBit = [9])
+    def delete(self,id,user):
+        transactionConfiguration.getElementById(id, user).is_valid = False
+        db.session.commit()
+        return {"message": "Operation successful."}, 202
+    """
 
 
 """
