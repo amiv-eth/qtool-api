@@ -1,14 +1,13 @@
-from .query_parser import queryParser
+from .query_parser import QueryParser
 
 
 def loadPage(dbClass, dbSchema):
-    args = queryParser(dbClass)
-    index = args["page"]
-    (sortBy,primaryDatabase) = args['sort']
-    embeddedQuery = dbClass.query.options(args["embedded"]).outerjoin('user').outerjoin('account')#.outerjoin(primaryDatabase)
-    orderedQuery = embeddedQuery.order_by(sortBy)
-    filteredQuery = orderedQuery.filter(args["where"])
-    print(filteredQuery.count())
-    paginatedQuery = filteredQuery.offset(25*(index-1)).limit(25)
+    query = QueryParser().parseQueryFromRequest(dbClass)
+    embeddedQuery = dbClass.query.options(query.embedded)#.outerjoin(primaryDatabase)
+    for relatedDatabase in query.join:
+        embeddedQuery = embeddedQuery.outerjoin(relatedDatabase)
+    orderedQuery = embeddedQuery.order_by(query.sort)
+    filteredQuery = orderedQuery.filter(query.where)
+    paginatedQuery = filteredQuery.offset(25*(query.page-1)).limit(25)
     dumpedQuery = dbSchema(many=True).dump(paginatedQuery).data
     return dumpedQuery

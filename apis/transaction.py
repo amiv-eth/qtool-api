@@ -12,8 +12,6 @@ import schemas.transaction
 
 from schemas.transaction import Transaction, TransactionSchema
 
-from .query_parser import queryParser
-
 from flask import jsonify
 
 import decimal
