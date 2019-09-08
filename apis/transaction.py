@@ -16,7 +16,8 @@ from flask import jsonify
 
 import decimal
 
-from .database_request import loadPage, loadEntry
+from .utility import schemaToDict
+from .database_request import loadPage, loadEntry, postEntry
 
 
 api = Namespace('Transaction', description='Transaction related operations.')
@@ -28,6 +29,7 @@ queryDocumentation = {
     'embedded': "Toggle the embedding of additional ressources in the response."
 }
 
+transactionModel = api.model("transaction",schemaToDict(TransactionSchema))
 
 @api.route('/transactions')
 @api.doc(security = 'amivapitoken')
@@ -35,6 +37,10 @@ class TransactionEndpoint(Resource):
     @api.doc(params=queryDocumentation)
     def get(self):
         return loadPage(Transaction, TransactionSchema)
+
+    @api.expect(transactionModel)    
+    def post(self, user):
+        return postEntry(TransactionSchema, api.payload)
         """
         args = queryParser(Transaction, None)
         index = args["page"]

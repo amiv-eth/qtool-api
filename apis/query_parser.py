@@ -16,14 +16,21 @@ class QuerySchema(Schema):
 
 
 class QueryParser:
-    def __init__(self):
+    def __init__(self, dbClass):
+        self.dbClass = dbClass
+        self.resetResults()
+
+    def resetResults(self):
         self.where = True
         self.sort = None
         self.page = 1
         self.embedded = ()
         self.join = set()
 
-    def parseQueryFromRequest(self,dbClass):
+
+    def parseQueryFromRequest(self):
+        self.resetResults()
+
         query = request.args.to_dict()
         query = QuerySchema().load(query).data
 
@@ -31,10 +38,10 @@ class QueryParser:
             self.page = query['page']
 
         if 'sort' in query:
-            self.sortParser(dbClass, query['sort'])
+            self.sortParser(query['sort'])
 
         if 'embedded' in query:
-            self.embeddingParser(dbClass, query['embedded'])
+            self.embeddingParser(query['embedded'])
 
         if 'where' in query:
             try:
@@ -42,11 +49,12 @@ class QueryParser:
                 whereDict = dict(whereDict)
             except:
                 abort(400, 'Invalid syntax for query parameter where, please pass a valid dicitionary.')
-            self.where = self.filterParser(whereDict,dbClass)
+            self.where = self.filterParser(whereDict)
         return self
 
 
-    def decomposeNestedOperator(self, dbClass, opString):
+    def decomposeNestedOperator(self, opString):
+        dbClass = self.dbClass
         parameters = opString.split('.')
         numberOfParameters = len(parameters)
         if numberOfParameters == 3:
@@ -70,9 +78,9 @@ class QueryParser:
             abort(400, errorMessage)
         return (relatedDatabase,attributeInstance,operator)
 
-    def sortParser(self, dbClass, sortingParameter):
+    def sortParser(self, sortingParameter):
         #ToDo: Can not sort by an unloaded related database!
-        (relatedDatabase, attribute, operator) = self.decomposeNestedOperator(dbClass, sortingParameter)
+        (relatedDatabase, attribute, operator) = self.decomposeNestedOperator(sortingParameter)
         if operator == 'asc':
             self.sort = asc(attribute)
         elif operator == 'desc':
@@ -82,7 +90,7 @@ class QueryParser:
             abort(400, errorMessage)
         self.join.add(relatedDatabase)
 
-    def filterParser(self, whereStatement,dbClass):
+    def filterParser(self, whereStatement):
         if len(whereStatement) > 1:
             abort(400, 'Invalid syntax for query parameter where, wrong number of arguments!')
         
@@ -93,7 +101,7 @@ class QueryParser:
                 abort(400, 'Invalid syntax for query parameter where. An and statement requires a list of dicitionaries!')
             filterCondition = True
             for statement in filterList:
-                filterCondition = and_(filterCondition, self.filterParser(statement, dbClass))
+                filterCondition = and_(filterCondition, self.filterParser(statement))
 
         elif 'or' == key:
             filterList = whereStatement[key]
@@ -101,18 +109,18 @@ class QueryParser:
                 abort(400, 'Invalid syntax for query parameter where. An or statement requires a list of dicitionaries!')
             filterCondition = False
             for statement in filterList:
-                filterCondition = or_(filterCondition, self.filterParser(statement, dbClass))
+                filterCondition = or_(filterCondition, self.filterParser(statement))
             # Ensure consistent results, when receiving an empty or statement.
             if len(filterList) == 0:
                 filterCondition = True
 
         else:
-            filterCondition = self.createFilterCondition(key,whereStatement[key], dbClass)
+            filterCondition = self.createFilterCondition(key,whereStatement[key])
                 
         return filterCondition
 
-    def createFilterCondition(self, condition, val, dbClass):
-        (relatedDatabase, attr, op) = self.decomposeNestedOperator(dbClass, condition)
+    def createFilterCondition(self, condition, val):
+        (relatedDatabase, attr, op) = self.decomposeNestedOperator(condition)
         # ToDo: schema load for input validation
         if op == "eq":
             condition = attr == val
@@ -130,7 +138,7 @@ class QueryParser:
         self.join.add(relatedDatabase)
         return condition
 
-    def embeddingParser(self, dbClass, embedded):
+    def embeddingParser(self, embedded):
         try:
             embeddingDict = literal_eval(embedded)
             embeddingDict = dict(embeddingDict)
@@ -139,9 +147,9 @@ class QueryParser:
         joinedLoadList = []
         for key in embeddingDict:
             if embeddingDict[key]:
-                if not hasattr(dbClass, key):
+                if not hasattr(self.dbClass, key):
                     abort(400, 'Invalid syntax for query parameter embedding, ' + key + ' is not a valid attribute!')
-                if type((getattr(dbClass,key).property)) != type(relationship(None)):
+                if type((getattr(self.dbClass,key).property)) != type(relationship(None)):
                     abort(400, 'Invalid syntax for query parameter embedding, ' + key + ' is not a related resource!')
                 joinedLoadList.append(joinedload(key))
         self.embedded = tuple(joinedLoadList)
